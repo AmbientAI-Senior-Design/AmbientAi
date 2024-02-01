@@ -1,12 +1,18 @@
-from flask import Flask
-from config import PORT
-from src.routes import leaderboard, user
+from flask import Flask, render_template
+from src.config import PORT
+from src.routes import leaderboard
+
+
+application = Flask(__name__)
+
+@application.route('/billboard')
+def render_billboard():
+    return render_template('billboard.html')
 
 
 if __name__ == '__main__':
-    app = Flask(__name__)
     # connect to database here
-    ...
+    
     # register routes
-    app.register_blueprint(leaderboard, url_prefix='/leaderboards')
-    app.run(port=PORT, debug=True)
+    application.register_blueprint(leaderboard, url_prefix='/leaderboards')
+    application.run(port=PORT, debug=True)
