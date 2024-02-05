@@ -1,1 +1,1 @@
-from .leaderboard import LeaderBoard
+from .leaderboard_models import LeaderBoard
