@@ -2,6 +2,7 @@ from flask import Flask, render_template
 from src.config import PORT
 from src.routes import leaderboard
 
+# TODO: add the setup steps for mysql in setup.sql 
 
 application = Flask(__name__)
 
