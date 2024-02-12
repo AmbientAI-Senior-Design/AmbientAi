@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Client Terminal</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: rgb(9, 1, 1);
+            color: #0f0101;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+        }
+        header {
+            background: #119773;
+            color: #e0e5e4;
+            padding-top: 30px;
+            min-height: 70px;
+            border-bottom: #f0f2f3 1px solid;
+        }
+        header h1 {
+            text-align: center;
+            margin: 0;
+            padding-bottom: 10px;
+        }
+        form {
+            margin-top: 20px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        label {
+            margin-top: 10px;
+            display: block;
+            font-weight: bold;
+        }
+        input[type="text"],
+        input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            box-sizing: border-box; /* Added */
+        }
+        input[type="submit"] {
+            width: 100%;
+            background: #50a3a2;
+            color: white;
+            padding: 10px;
+            border: 0;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        input[type="submit"]:hover {
+            background: #f7f8f9;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Client Terminal</h1>
+    </header>
+    <div class="container">
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <label for="image_name">Image Name:</label>
+            <input type="text" id="image_name" name="image_name">
+            <label for="image_file">Image File:</label>
+            <input type="file" id="image_file" name="image_file" accept="image/*">
+            <label for="Client_name">Client Name:</label>
+            <input type="text" id="Client_name" name="Client_name">
+            <input type="submit" value="Upload Image">
+        </form>
+    </div>
+</body>
+</html>
