@@ -13,7 +13,8 @@ def render_billboard():
 @socketio.on('refresh')
 def handle_refresh():
     # handle href logic here
-    hrefs = ['https://picsum.photos/200', 'https://picsum.photos/200'] # insert the images here
+    # TODO: matt, add your code logic here to get images on page load
+    hrefs = ['https://picsum.photos/200', 'https://picsum.photos/200']  # insert the images here
     emit_carrousel_refresh(hrefs)
 
 
