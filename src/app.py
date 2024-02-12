@@ -1,11 +1,8 @@
-from flask import Flask, render_template
+from flask import render_template
 from src.config import PORT
 from src.routes import leaderboard
-from flask_socketio import SocketIO
-
-
-application = Flask(__name__)
-socketio = SocketIO(application)
+from src.config import application
+from src.services.flask_socket import socketio, emit_carrousel_refresh
 
 
 @application.route('/billboard')
@@ -15,8 +12,9 @@ def render_billboard():
 
 @socketio.on('refresh')
 def handle_refresh():
-    # Handle the refresh images logic here
-    socketio.emit('update_data', ["https://picsum.photos/200", "https://picsum.photos/200"])
+    # handle href logic here
+    hrefs = ['https://picsum.photos/200', 'https://picsum.photos/200'] # insert the images here
+    emit_carrousel_refresh(hrefs)
 
 
 if __name__ == '__main__':
