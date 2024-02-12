@@ -12,6 +12,6 @@ This script will install the necessary dependencies for the project.
 To deploy the app locally, run the `Dockerfile` located in the root directory of the project. 
 ```bash
 $ docker build -t ambientai .
-$ docker run -p 5000:5000 ambientai
+$ docker run -p 80:80 ambientai
 ```
 
