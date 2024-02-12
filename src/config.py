@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from flask import Flask
 
 load_dotenv()
 
@@ -9,3 +10,5 @@ MYSQL_PORT = os.getenv('MYSQL_PORT')
 MYSQL_HOST = os.getenv('MYSQL_HOST')
 MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD')
 MYSQL_USER = os.getenv('MYSQL_USER')
+
+application = Flask(__name__)
