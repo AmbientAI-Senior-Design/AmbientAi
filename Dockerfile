@@ -20,4 +20,4 @@ EXPOSE 80
 ENV NAME World
 
 # Run app.py with gunicorn when the container launches
-CMD ["gunicorn", "-b", "0.0.0.0:80", "src.app:app"]
+CMD ["gunicorn", "-b", "0.0.0.0:80", "src.app:application"]
