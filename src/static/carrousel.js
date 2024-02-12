@@ -1,5 +1,5 @@
 // Assuming you have Socket.IO available
-const socket = io.connect('http://localhost:3000');
+const socket = io.connect('http://' + document.domain + ':' + location.port);
 
 socket.on('connect_error', function() {
     const container = document.getElementById('slideshow-container');
@@ -44,7 +44,7 @@ function showSlides() {
     socket.emit('refresh');
 }
 
-socket.on('refresh', function(hrefs) {
+socket.on('update_data', function(hrefs) {
     generateCarrousel(hrefs);
 });
 
