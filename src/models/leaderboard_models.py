@@ -2,5 +2,7 @@ from pydantic import BaseModel
 
 
 class LeaderBoard(BaseModel):
-    # TODO: finish this class and any other necessary classes 
-    pass
+    image_score: int
+    input_name: str
+    input_image_path: str
+    client_name: str

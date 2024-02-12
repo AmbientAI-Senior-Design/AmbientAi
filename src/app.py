@@ -3,8 +3,8 @@ from src.config import PORT
 from src.routes import leaderboard
 from src.config import application
 from src.services.flask_socket import socketio, emit_carrousel_refresh
+from src.services.db.input_manager import InputManager
 
-# TODO: add the setup steps for mysql in setup.sql 
 
 @application.route('/billboard')
 def render_billboard():
@@ -14,9 +14,10 @@ def render_billboard():
 @socketio.on('refresh')
 def handle_refresh():
     # handle href logic here
-    # TODO: matt, add your code logic here to get images on page load
-    hrefs = ['https://picsum.photos/200', 'https://picsum.photos/200']  # insert the images here
-    emit_carrousel_refresh(hrefs)
+    # TODO: nick, get hrefs (input_image_path) from database, sort them by score
+    with InputManager() as db:
+        hrefs = db.get_hrefs_for_leaderboard()
+        emit_carrousel_refresh(hrefs)
 
 
 if __name__ == '__main__':

@@ -5,6 +5,7 @@ import cv2
 import dlib
 import numpy as np
 
+
 webcam_Capture = cv2.VideoCapture(0)
 unused_tuple_var, webcam_frame1 = webcam_Capture.read()
 unused_tuple_var2, webcame_frame2 = webcam_Capture.read()
