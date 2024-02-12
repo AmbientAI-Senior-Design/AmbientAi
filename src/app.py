@@ -1,6 +1,6 @@
 from flask import Flask
 from config import PORT
-from src.routes import leaderboard, user
+from src.routes import leaderboard
 
 
 if __name__ == '__main__':
