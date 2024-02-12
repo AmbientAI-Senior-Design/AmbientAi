@@ -4,6 +4,7 @@ from src.routes import leaderboard
 from src.config import application
 from src.services.flask_socket import socketio, emit_carrousel_refresh
 
+# TODO: add the setup steps for mysql in setup.sql 
 
 @application.route('/billboard')
 def render_billboard():
