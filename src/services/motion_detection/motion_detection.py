@@ -4,6 +4,17 @@ import numpy as np
 import requests
 
 
+# Used to get currently displayed content information (id, duration, etc..)
+def get_current_content():
+    req = requests.get("http://localhost:8000/content")
+    return req.json()
+
+
+def post_engagement_report(report):
+    req = requests.post("http://localhost:8000/engagement-reports", json=report)
+    return req
+
+
 class MotionAndFacialDetection:
     def __init__(self):
         self.webcam_capture = cv2.VideoCapture(0)
@@ -32,7 +43,14 @@ class MotionAndFacialDetection:
                 possible_faces = self.face_detector(region_of_interest)
 
                 for possible_face in possible_faces:
-                    requests.post("http://localhost:8000/engagement")
+                    current_content = get_current_content()
+                    report = {
+                        "id": current_content["id"]
+                        # add more fields
+                    }
+
+                    post_engagement_report(report)
+
                     facial_landmarks = self.shape_predictor(region_of_interest, possible_face)
                     for n in range(0, 68):
                         x = facial_landmarks.part(n).x
