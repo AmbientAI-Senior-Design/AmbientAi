@@ -1,6 +1,6 @@
 from flask import render_template
 from src.config import PORT
-from src.routes import leaderboard
+from src.routes import leaderboard, engagement
 from src.config import application
 from src.services.flask_socket import socketio, emit_carrousel_refresh
 from src.services.db.input_manager import InputManager
@@ -25,5 +25,7 @@ if __name__ == '__main__':
 
     # register routes
     application.register_blueprint(leaderboard, url_prefix='/leaderboards')
+    application.register_blueprint(engagement, url_prefix="/engagement")
+
     # Run the Flask application with Socket.IO support
     socketio.run(application, port=PORT, debug=True, allow_unsafe_werkzeug=True)
