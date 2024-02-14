@@ -7,7 +7,7 @@ import numpy as np
 
 webcam_Capture = cv2.VideoCapture(0)
 unused_tuple_var, webcam_frame1 = webcam_Capture.read()
-unused_tuple_var2, webcame_frame2 = webcam_Capture.read()
+unused_tuple_var2, webcam_frame2 = webcam_Capture.read()
 
 face_detector = dlib.get_frontal_face_detector()
 
@@ -18,7 +18,7 @@ shape_predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
 
 while True:
 	# Motion Detection Section
-	frame_difference = cv2.absdiff(webcam_frame1, webcame_frame2)
+	frame_difference = cv2.absdiff(webcam_frame1, webcam_frame2)
 	convert_to_grayscale = cv2.cvtColor(frame_difference, cv2.COLOR_BGR2GRAY)
 	#erosion operation on the image
 	image_blur = cv2.GaussianBlur(convert_to_grayscale, (5, 5), 0)
@@ -47,8 +47,8 @@ while True:
 
 
 	cv2.imshow("webcam_feed", webcam_frame1)
-	webcam_frame1 = webcame_frame2
-	unused_tuple_var_5, webcame_frame2 = webcam_Capture.read()
+	webcam_frame1 = webcam_frame2
+	unused_tuple_var_5, webcam_frame2 = webcam_Capture.read()
 	# run through regions of interest
 
 	if cv2.waitKey(1) & 0xFF == ord('q'):
