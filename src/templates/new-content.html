@@ -67,14 +67,19 @@
     <header>
         <h1>Client Terminal</h1>
     </header>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/new-content">Add New Content</a>
+        <a href="#">Go to Billboard</a>
+    </nav>
     <div class="container">
-        <form action="/upload" method="post" enctype="multipart/form-data">
+        <form method="post" enctype="multipart/form-data">
             <label for="image_name">Image Name:</label>
             <input type="text" id="image_name" name="image_name">
             <label for="image_file">Image File:</label>
             <input type="file" id="image_file" name="image_file" accept="image/*">
-            <label for="Client_name">Client Name:</label>
-            <input type="text" id="Client_name" name="Client_name">
+            <label for="client_name">Client Name:</label>
+            <input type="text" id="client_name" name="client_name">
             <input type="submit" value="Upload Image">
         </form>
     </div>

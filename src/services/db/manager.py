@@ -24,5 +24,6 @@ class DatabaseManager:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         # make sure the dbconnection gets closed
+        self._conn.commit()
         self._conn.close()
 
