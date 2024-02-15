@@ -50,3 +50,10 @@ class InputManager(DatabaseManager):
         query = "INSERT INTO input (input_name, input_image_path, client_name, image_score) VALUES (%s, %s, %s, %s)"
         res = self.cursor.execute(query, (data.input_name, data.input_image_path, data.client_name, data.image_score))
         return res
+
+    def get_highest_ranked_input_src(self) -> str:
+        query = "SELECT input_image_path FROM input ORDER BY image_score DESC LIMIT 1"
+        self.cursor.execute(query)
+        res = self.cursor.fetchone()
+        if res:
+            return res[0]

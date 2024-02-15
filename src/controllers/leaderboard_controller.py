@@ -1,6 +1,7 @@
 from src.models import InputModel
 from src.services.db.input_manager import InputManager
 
+
 def create_leaderboard():
     pass
 

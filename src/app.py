@@ -10,7 +10,9 @@ from src.models import InputModel
 
 @application.route('/billboard')
 def render_billboard():
-    return render_template('billboard.html')
+    with InputManager() as db:
+        initial_src = db.get_highest_ranked_input_src()
+        return render_template('billboard.html', initial_src=initial_src)
 
 
 @application.route('/dashboard')
@@ -25,13 +27,11 @@ def render_index():
     return render_template('home.html')
 
 
-@socketio.on('refresh')
+@application.route('/content', methods=['POST'])
 def handle_refresh():
-    # handle href logic here
-    # TODO: nick, get hrefs (input_image_path) from database, sort them by score
-    with InputManager() as db:
-        hrefs = db.get_hrefs_for_leaderboard()
-        emit_carrousel_refresh(hrefs)
+    src = request.args.get('src')
+    emit_carrousel_refresh([src])
+    return '200'
 
 
 @application.route('/new-content', methods=["GET", "POST"])
