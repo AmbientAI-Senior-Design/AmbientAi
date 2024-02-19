@@ -18,55 +18,62 @@ def post_engagement_report(report):
 class MotionAndFacialDetection:
     def __init__(self):
         self.webcam_capture = cv2.VideoCapture(0)
-        _, self.webcam_frame1 = self.webcam_capture.read()
-        _, self.webcam_frame2 = self.webcam_capture.read()
+        if not self.webcam_capture.isOpened():
+            print("Error: Could not open video capture.")
+            exit()
 
         self.face_detector = dlib.get_frontal_face_detector()
         self.shape_predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
+        self.face_trackers = []
 
-    def motion_detection(self):
+    def rectangle_to_tuple(self, rectangle):
+        return (rectangle.left(), rectangle.top(), rectangle.width(), rectangle.height())  # (x, y, w, h)
+
+    def run(self):
         while True:
-            frame_difference = cv2.absdiff(self.webcam_frame1, self.webcam_frame2)
-            convert_to_grayscale = cv2.cvtColor(frame_difference, cv2.COLOR_BGR2GRAY)
-            image_blur = cv2.GaussianBlur(convert_to_grayscale, (5, 5), 0)
-            _, threshold = cv2.threshold(image_blur, 20, 255, cv2.THRESH_BINARY)
-            image_dilation = cv2.dilate(threshold, None, iterations=3)
-            image_contours, _ = cv2.findContours(image_dilation, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+            _, frame = self.webcam_capture.read()
+            gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-            for image_contour in image_contours:
-                if cv2.contourArea(image_contour) < 2000:
-                    continue
-                x, y, w, h = cv2.boundingRect(image_contour)
-                cv2.rectangle(self.webcam_frame1, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            # Handle trackers and cleanup
+            for tracker_dict in self.face_trackers[:]:
+                tracker = tracker_dict['tracker']
+                pos = tracker.get_position()
+                tracked_rectangle = dlib.rectangle(int(pos.left()), int(pos.top()), int(pos.right()), int(pos.bottom()))
+                tracked_region = gray_frame[tracked_rectangle.top():tracked_rectangle.bottom(), tracked_rectangle.left():tracked_rectangle.right()]
 
-                region_of_interest = self.webcam_frame1[y:y + h, x:x + w]
-                possible_faces = self.face_detector(region_of_interest)
+                # Remove tracker if face is no longer detected within the region
+                if len(self.face_detector(tracked_region)) == 0:
+                    self.face_trackers.remove(tracker_dict)
 
-                for possible_face in possible_faces:
-                    current_content = get_current_content()
-                    report = {
-                        "id": current_content["id"]
-                        # add more fields
-                    }
+                # Draw rectangle around tracked facial landmarks
+                cv2.rectangle(frame, (int(pos.left()), int(pos.top())), (int(pos.right()), int(pos.bottom())), (0, 255, 0), 3)
+                landmarks = self.shape_predictor(gray_frame, tracked_rectangle)
+                for n in range(0, 68):
+                    x = landmarks.part(n).x
+                    y = landmarks.part(n).y
+                    cv2.circle(frame, (x, y), 2, (255, 0, 0), -1)
 
-                    post_engagement_report(report)
+            # Check for new faces and initialize trackers
+            if len(self.face_trackers) == 0:
+                faces = self.face_detector(gray_frame)
+                for face in faces:
+                    face_tracker = dlib.correlation_tracker()
+                    face_tracker.start_track(frame, face)
+                    tracker_data = {'tracker': face_tracker, 'id': len(self.face_trackers)}
+                    self.face_trackers.append(tracker_data)
 
-                    facial_landmarks = self.shape_predictor(region_of_interest, possible_face)
-                    for n in range(0, 68):
-                        x = facial_landmarks.part(n).x
-                        y = facial_landmarks.part(n).y
-                        cv2.circle(region_of_interest, (x, y), 2, (255, 0, 0), -1)
-
-            cv2.imshow("webcam_feed", self.webcam_frame1)
-            self.webcam_frame1 = self.webcam_frame2
-            _, self.webcam_frame2 = self.webcam_capture.read()
-
+            # Print the number of faces currently detected
+            text = f"Faces Detected in Frame: {len(self.face_trackers)}"
+            cv2.putText(frame, text, (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 2)
+            cv2.imshow('Frame', frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
-                self.webcam_capture.release()
-                cv2.destroyAllWindows()
                 break
 
+        self.webcam_capture.release()
+        cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    motion_and_facial_detection = MotionAndFacialDetection()
-    motion_and_facial_detection.motion_detection()
+    detector = MotionAndFacialDetection()
+    detector.run()
+
+#removed current content and engagement report parts - need to implement at a future date
