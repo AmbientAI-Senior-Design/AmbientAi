@@ -18,16 +18,16 @@ def post_engagement_report(report):
 class MotionAndFacialDetection:
     def __init__(self):
         self.webcam_capture = cv2.VideoCapture(0)
-        if not self.webcam_capture.isOpened():
-            print("Error: Could not open video capture.")
-            exit()
+        _, self.webcam_frame1 = self.webcam_capture.read()
+        _, self.webcam_frame2 = self.webcam_capture.read()
 
         self.face_detector = dlib.get_frontal_face_detector()
         self.shape_predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
         self.face_trackers = []
 
-    def rectangle_to_tuple(self, rectangle):
-        return (rectangle.left(), rectangle.top(), rectangle.width(), rectangle.height())  # (x, y, w, h)
+    @staticmethod
+    def rectangle_to_tuple(rectangle):
+        return rectangle.left(), rectangle.top(), rectangle.width(), rectangle.height()  # (x, y, w, h)
 
     def run(self):
         detection_frequency = 2
@@ -72,8 +72,7 @@ class MotionAndFacialDetection:
         self.webcam_capture.release()
         cv2.destroyAllWindows()
 
-if __name__ == "__main__":
-    detector = MotionAndFacialDetection()
-    detector.run()
 
-#removed current content and engagement report parts - need to implement at a future date
+if __name__ == "__main__":
+    motion_and_facial_detection = MotionAndFacialDetection()
+    motion_and_facial_detection.run()

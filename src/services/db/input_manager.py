@@ -57,3 +57,9 @@ class InputManager(DatabaseManager):
         res = self.cursor.fetchone()
         if res:
             return res[0]
+
+    def get_all_input_srcs(self) -> list[str]:
+        query = f"SELECT input_image_path FROM input"
+        self.cursor.execute(query)
+        res = self.cursor.fetchall()
+        return res
