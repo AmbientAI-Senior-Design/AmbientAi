@@ -30,37 +30,37 @@ class MotionAndFacialDetection:
         return (rectangle.left(), rectangle.top(), rectangle.width(), rectangle.height())  # (x, y, w, h)
 
     def run(self):
+        detection_frequency = 2
+        frame_count = 0
+
         while True:
             _, frame = self.webcam_capture.read()
             gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            frame_count += 1
 
-            # Handle trackers and cleanup
-            for tracker_dict in self.face_trackers[:]:
+            # Run face detection frequently
+            if frame_count % detection_frequency == 0:
+                self.face_trackers = []
+                faces = self.face_detector(gray_frame)
+                for face in faces:
+                    face_tracker = dlib.correlation_tracker()
+                    tracked_face_rect = dlib.rectangle(face.left(), face.top(), face.right(), face.bottom())
+                    face_tracker.start_track(frame, tracked_face_rect)
+                    tracker_data = {'tracker': face_tracker}
+                    self.face_trackers.append(tracker_data)
+
+            # Update trackers and draw facial landmarks
+            for tracker_dict in self.face_trackers:
                 tracker = tracker_dict['tracker']
+                tracker.update(frame)
                 pos = tracker.get_position()
-                tracked_rectangle = dlib.rectangle(int(pos.left()), int(pos.top()), int(pos.right()), int(pos.bottom()))
-                tracked_region = gray_frame[tracked_rectangle.top():tracked_rectangle.bottom(), tracked_rectangle.left():tracked_rectangle.right()]
-
-                # Remove tracker if face is no longer detected within the region
-                if len(self.face_detector(tracked_region)) == 0:
-                    self.face_trackers.remove(tracker_dict)
-
-                # Draw rectangle around tracked facial landmarks
                 cv2.rectangle(frame, (int(pos.left()), int(pos.top())), (int(pos.right()), int(pos.bottom())), (0, 255, 0), 3)
+                tracked_rectangle = dlib.rectangle(int(pos.left()), int(pos.top()), int(pos.right()), int(pos.bottom()))
                 landmarks = self.shape_predictor(gray_frame, tracked_rectangle)
                 for n in range(0, 68):
                     x = landmarks.part(n).x
                     y = landmarks.part(n).y
                     cv2.circle(frame, (x, y), 2, (255, 0, 0), -1)
-
-            # Check for new faces and initialize trackers
-            if len(self.face_trackers) == 0:
-                faces = self.face_detector(gray_frame)
-                for face in faces:
-                    face_tracker = dlib.correlation_tracker()
-                    face_tracker.start_track(frame, face)
-                    tracker_data = {'tracker': face_tracker, 'id': len(self.face_trackers)}
-                    self.face_trackers.append(tracker_data)
 
             # Print the number of faces currently detected
             text = f"Faces Detected in Frame: {len(self.face_trackers)}"
