@@ -1,67 +1,78 @@
-# Demo for Motion Detection and conditional facial detection
-# By Matthew Fitzgerald
-
 import cv2
 import dlib
 import numpy as np
-
-webcam_Capture = cv2.VideoCapture(0)
-unused_tuple_var, webcam_frame1 = webcam_Capture.read()
-unused_tuple_var2, webcam_frame2 = webcam_Capture.read()
-
-face_detector = dlib.get_frontal_face_detector()
-
-#saved regions of interest varr/arr
-
-#this is a trained model provided from dlib that helps with facial detection
-shape_predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
-
-while True:
-	# Motion Detection Section
-	frame_difference = cv2.absdiff(webcam_frame1, webcam_frame2)
-	convert_to_grayscale = cv2.cvtColor(frame_difference, cv2.COLOR_BGR2GRAY)
-	#erosion operation on the image
-	image_blur = cv2.GaussianBlur(convert_to_grayscale, (5, 5), 0)
-	unused_tuple_var3, threshold = cv2.threshold(image_blur, 20, 255, cv2.THRESH_BINARY)
-	image_dilation = cv2.dilate(threshold, None, iterations= 3)
-	image_contours, unused_tuple_var4 = cv2.findContours(image_dilation, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+import requests
 
 
-	for image_contour in image_contours:
-		if cv2.contourArea(image_contour) < 2000:
-			continue
-		x, y, w, h = cv2.boundingRect(image_contour)
-		cv2.rectangle(webcam_frame1, (x, y), (x+w, y+h), (0, 255, 0), 2)
-
-		# Facial Detection in Detected Motion Region
-		region_of_interest = webcam_frame1[y:y+h, x:x+w]
-		possible_faces = face_detector(region_of_interest)
-		for possible_face in possible_faces:
-			facial_landmarks = shape_predictor(region_of_interest, possible_face)
-			for n in range(0, 68):
-				x = facial_landmarks.part(n).x
-				y = facial_landmarks.part(n).y
-				cv2.circle(region_of_interest, (x, y), 2, (255, 0, 0), -1)
-		# then do something (if face stays within region of interest, then print face is staying)
+# Used to get currently displayed content information (id, duration, etc..)
+def get_current_content():
+    req = requests.get("http://localhost:8000/content")
+    return req.json()
 
 
-
-	cv2.imshow("webcam_feed", webcam_frame1)
-	webcam_frame1 = webcam_frame2
-	unused_tuple_var_5, webcam_frame2 = webcam_Capture.read()
-	# run through regions of interest
-
-	if cv2.waitKey(1) & 0xFF == ord('q'):
-		webcam_Capture.release()
-		cv2.destroyAllWindows()
-		break
+def post_engagement_report(report):
+    req = requests.post("http://localhost:8000/engagement-reports", json=report)
+    return req
 
 
-		# temp array of possible faces if the absdif calculation didn't return anything
-		# thread running for the facial analysis post-detection
-		# find face (contours), grab next image, give next image to face tracker then break
-		# array of facial coordinates, search in contours for the face if no face
-		# if face detected stop searching for motion or handle both by keeping face in coordinates
+class MotionAndFacialDetection:
+    def __init__(self):
+        self.webcam_capture = cv2.VideoCapture(0)
+        _, self.webcam_frame1 = self.webcam_capture.read()
+        _, self.webcam_frame2 = self.webcam_capture.read()
+
+        self.face_detector = dlib.get_frontal_face_detector()
+        self.shape_predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
+        self.face_trackers = []
+
+    @staticmethod
+    def rectangle_to_tuple(rectangle):
+        return rectangle.left(), rectangle.top(), rectangle.width(), rectangle.height()  # (x, y, w, h)
+
+    def run(self):
+        detection_frequency = 2
+        frame_count = 0
+
+        while True:
+            _, frame = self.webcam_capture.read()
+            gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            frame_count += 1
+
+            # Run face detection frequently
+            if frame_count % detection_frequency == 0:
+                self.face_trackers = []
+                faces = self.face_detector(gray_frame)
+                for face in faces:
+                    face_tracker = dlib.correlation_tracker()
+                    tracked_face_rect = dlib.rectangle(face.left(), face.top(), face.right(), face.bottom())
+                    face_tracker.start_track(frame, tracked_face_rect)
+                    tracker_data = {'tracker': face_tracker}
+                    self.face_trackers.append(tracker_data)
+
+            # Update trackers and draw facial landmarks
+            for tracker_dict in self.face_trackers:
+                tracker = tracker_dict['tracker']
+                tracker.update(frame)
+                pos = tracker.get_position()
+                cv2.rectangle(frame, (int(pos.left()), int(pos.top())), (int(pos.right()), int(pos.bottom())), (0, 255, 0), 3)
+                tracked_rectangle = dlib.rectangle(int(pos.left()), int(pos.top()), int(pos.right()), int(pos.bottom()))
+                landmarks = self.shape_predictor(gray_frame, tracked_rectangle)
+                for n in range(0, 68):
+                    x = landmarks.part(n).x
+                    y = landmarks.part(n).y
+                    cv2.circle(frame, (x, y), 2, (255, 0, 0), -1)
+
+            # Print the number of faces currently detected
+            text = f"Faces Detected in Frame: {len(self.face_trackers)}"
+            cv2.putText(frame, text, (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 2)
+            cv2.imshow('Frame', frame)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
+        self.webcam_capture.release()
+        cv2.destroyAllWindows()
 
 
-		#erosion, non-moving face handling in face detected region
+if __name__ == "__main__":
+    motion_and_facial_detection = MotionAndFacialDetection()
+    motion_and_facial_detection.run()
