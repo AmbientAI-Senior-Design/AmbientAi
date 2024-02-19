@@ -1,1 +1,1 @@
-from .leaderboard_models import LeaderBoard
+from .input_model import InputModel

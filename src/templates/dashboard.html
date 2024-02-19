@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard</title>
+
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/new-content">Add New Content</a>
+        <a href="/billboard" target="_blank">Go to Billboard</a>
+    </nav>
+
+    <h1>Leaderboard</h1>
+    <table >
+        <thead>
+            <tr>
+                <th></th>
+                <th>Name</th>
+                <th>Path</th>
+                <th>Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in leaderboard_list %}
+                <tr>
+                    <td>
+                        <img alt="image thumbnail" src={{entry.input_image_path}}  />
+                    </td>
+                    <td>{{ entry.input_name }}</td>
+                    <td>{{ entry.input_image_path }}</td>
+                    <td>{{ entry.image_score }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
