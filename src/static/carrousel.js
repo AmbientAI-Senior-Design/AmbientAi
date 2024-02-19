@@ -48,4 +48,3 @@ socket.on('update_data', function(hrefs) {
     generateCarrousel(hrefs);
 });
 
-showSlides();
