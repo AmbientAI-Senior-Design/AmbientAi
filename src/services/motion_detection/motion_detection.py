@@ -42,11 +42,11 @@ class MotionAndFacialDetection:
         _, self.webcam_frame2 = self.webcam_capture.read()
 
         self.face_detector = dlib.get_frontal_face_detector()
-        self.shape_predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks_GTX.dat")
+        self.shape_predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
         self.hog = cv2.HOGDescriptor()
         self.face_trackers = []
         # Load pre-trained model
-        self.net = cv2.dnn.readNet("yolov3.weights", "yolov3.cfg")
+        self.net = cv2.dnn.readNet("yolov7-tiny.weights", "yolov7-tiny.cfg")
         self.layer_names = self.net.getLayerNames()
         self.output_layers = [self.layer_names[i - 1] for i in self.net.getUnconnectedOutLayers()]
 
