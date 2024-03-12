@@ -1,12 +1,24 @@
-from flask import render_template, request, redirect, url_for
-from src.config import (PORT, STATIC_FOLDER_PATH, application)
-from src.routes import leaderboard, engagement
-from src.services.flask_socket import socketio, emit_carrousel_refresh
-from src.services.db.input_manager import InputManager
-from src.controllers.leaderboard_controller import get_leaderboard
-import os
-from src.models import InputModel
 
+
+from flask import render_template, request, redirect, url_for
+from config import (PORT, STATIC_FOLDER_PATH, application)
+
+# Instead of from src.routes import leaderboard, engagement
+from routes import leaderboard, engagement
+
+# Instead of from src.services.flask_socket import socketio, emit_carrousel_refresh
+from services.flask_socket import socketio, emit_carrousel_refresh
+
+# Instead of from src.services.db.input_manager import InputManager
+from services.db.input_manager import InputManager
+
+# Instead of from src.controllers.leaderboard_controller import get_leaderboard
+from controllers.leaderboard_controller import get_leaderboard
+
+import os
+
+# Instead of from src.models import InputModel
+from models import InputModel
 
 @application.route('/billboard')
 def render_billboard():
