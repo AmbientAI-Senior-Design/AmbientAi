@@ -1,24 +1,25 @@
 
 
-from flask import render_template, request, redirect, url_for
-from config import (PORT, STATIC_FOLDER_PATH, application)
+from flask import Flask, jsonify, render_template, request, redirect, url_for
+from src.config import (PORT, STATIC_FOLDER_PATH, application)
 
 # Instead of from src.routes import leaderboard, engagement
-from routes import leaderboard, engagement
+from src.routes import leaderboard, engagement
 
 # Instead of from src.services.flask_socket import socketio, emit_carrousel_refresh
-from services.flask_socket import socketio, emit_carrousel_refresh
+from src.services.flask_socket import socketio, emit_carrousel_refresh
 
 # Instead of from src.services.db.input_manager import InputManager
-from services.db.input_manager import InputManager
+from src.services.db.input_manager import InputManager
 
 # Instead of from src.controllers.leaderboard_controller import get_leaderboard
-from controllers.leaderboard_controller import get_leaderboard
+from src.controllers.leaderboard_controller import get_leaderboard
 
 import os
+import sqlite3
 
 # Instead of from src.models import InputModel
-from models import InputModel
+from src.models import InputModel
 
 @application.route('/billboard')
 def render_billboard():
@@ -81,6 +82,30 @@ def render_new_content():
 def success():
     return render_template('success.html')
 
+DATABASE = "ClientInput"
+
+#where the self.engagement_counter is suppose to send engagement score every 5 sec
+@application.route("/engagement",methods =["POST"])
+def update_engagement():
+    scorerecv = request.json
+    score = scorerecv.get("score", 0)
+    # adding score to db below
+    conn = sqlite3.connect(DATABASE)
+    cur = conn.cursor()
+    cur.execute("INSERT INTO input (image_score) VALUES (%s)", (score,))
+    conn.commit()
+    conn.close()
+
+@application.route("/current_score", methods=["GET"])
+def current_score():
+    conn = sqlite3.connect(DATABASE)
+    cur = conn.cursor()
+    cur.execute("SELECT image_score FROM input ORDER BY input_id DESC LIMIT 1")
+    row = cur.fetchone()
+    score = row[0] if row else 0
+    cur.close()
+    conn.close()
+    return jsonify({"Current eng score": score})
 
 if __name__ == '__main__':
     # connect to database here
@@ -90,3 +115,4 @@ if __name__ == '__main__':
     application.register_blueprint(engagement, url_prefix="/engagement")
     # Run the Flask application with Socket.IO support
     socketio.run(application, port=PORT, debug=True, allow_unsafe_werkzeug=True)
+

@@ -3,7 +3,9 @@ import dlib
 import numpy as np
 import requests
 import math
+import threading
 
+engagement_counter = 0
 
 # Used to get currently displayed content information (id, duration, etc..)
 def get_current_content():
@@ -37,6 +39,7 @@ def calculate_distance_in_cm(perimeter):
 
 class MotionAndFacialDetection:
     def __init__(self):
+        self.engagement_counter = 0
         self.webcam_capture = cv2.VideoCapture(0)
         _, self.webcam_frame1 = self.webcam_capture.read()
         _, self.webcam_frame2 = self.webcam_capture.read()
@@ -90,6 +93,14 @@ class MotionAndFacialDetection:
                 people_boxes.append((x, y, x + w, y + h))
 
         return people_boxes
+    def send_engagement_score(self):
+        data = {"score":self.engagement_counter}
+        try:
+            response = requests.post("http://localhost:5000/engagement", json=data)
+            print(f"Engagement score sent: {data['score']} - Server response: {response.text}")
+        except Exception as e:
+            print(f"Failed to send engagement score: {e}")
+
 
     def run(self):
         detection_frequency = 2
@@ -130,7 +141,7 @@ class MotionAndFacialDetection:
                               (0, 255, 0), 3)
                 tracked_rectangle = dlib.rectangle(int(pos.left()), int(pos.top()), int(pos.right()), int(pos.bottom()))
                 landmarks = self.shape_predictor(gray_frame, tracked_rectangle)
-
+                #self.engagement_counter += 1
                 # Points of interest
                 points_of_interest = [19, 33, 24]
                 interest_coordinates = []
@@ -150,6 +161,9 @@ class MotionAndFacialDetection:
                     cv2.polylines(frame, [np.array(interest_coordinates)], isClosed=True, color=(0, 0, 255),
                                   thickness=2)
                     engaged = True
+                    self.engagement_counter +=1
+
+            print(f"Engagement Counter: {self.engagement_counter}")
             time_out = cv2.getTickCount()
             time_diff = time_out - time_in
             ticks_to_seconds = cv2.getTickFrequency()
@@ -160,15 +174,23 @@ class MotionAndFacialDetection:
 
             # Print the number of faces currently detected
             text = f"Faces Detected in Frame: {len(self.face_trackers)}"
+            
+            #print(engagement_counter)
             cv2.putText(frame, text, (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 2)
             cv2.imshow('Frame', frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
-
+        
         self.webcam_capture.release()
         cv2.destroyAllWindows()
-
+#using threading to send score every 5 seconds
+def timed_send_score(detection_run, interval=5):
+    threading.Timer(interval, timed_send_score, [detection_run, interval]).start()
+    detection_run.send_engagement_score()
 
 if __name__ == "__main__":
     motion_and_facial_detection = MotionAndFacialDetection()
+
+    timed_send_score(motion_and_facial_detection)
+
     motion_and_facial_detection.run()

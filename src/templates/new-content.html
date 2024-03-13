@@ -84,6 +84,26 @@
             color: #ffffff;
         }
     </style>
+    <script>
+        // Function to validate the form and redirect
+        function validateAndSubmit(event) {
+            event.preventDefault(); // Prevent the default form submission
+
+            // Get form values
+            var imageName = document.getElementById('image_name').value.trim();
+            var imageFile = document.getElementById('image_file').value;
+            var clientName = document.getElementById('client_name').value.trim();
+
+            // Check if all fields have values
+            if (imageName && imageFile && clientName) {
+                // Redirect to success.html
+                window.location.href = 'success';
+            } else {
+                // Alert the user to fill all fields
+                alert('Please fill in all fields and select an image file.');
+            }
+        }
+    </script>
 </head>
 <body>
     <header>
@@ -95,15 +115,16 @@
         <a href="/billboard">Go to Billboard</a>
     </nav>
     <div class="container">
-        <form method="post" enctype="multipart/form-data">
+        <form onsubmit="validateAndSubmit(event)" enctype="multipart/form-data">
             <label for="image_name">Image Name:</label>
-            <input type="text" id="image_name" name="image_name">
+            <input type="text" id="image_name" name="image_name" required>
             <label for="image_file">Image File:</label>
-            <input type="file" id="image_file" name="image_file" accept="image/*">
+            <input type="file" id="image_file" name="image_file" accept="image/*" required>
             <label for="client_name">Client Name:</label>
-            <input type="text" id="client_name" name="client_name">
+            <input type="text" id="client_name" name="client_name" required>
             <input type="submit" value="Upload Image">
         </form>
     </div>
 </body>
 </html>
+
