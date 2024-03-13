@@ -46,6 +46,13 @@ class InputManager(DatabaseManager):
 
         return leaderboard_list
 
+    def get_current_score(self):
+        query = "SELECT image_score FROM input ORDER BY input_id DESC LIMIT 1"
+        self.cursor.execute(query)
+        res = self.cursor.fetchone()
+        score = res[0] if res else 0
+        return score
+
     def create_input(self, data: InputModel):
         query = "INSERT INTO input (input_name, input_image_path, client_name, image_score) VALUES (%s, %s, %s, %s)"
         res = self.cursor.execute(query, (data.input_name, data.input_image_path, data.client_name, data.image_score))
@@ -63,3 +70,7 @@ class InputManager(DatabaseManager):
         self.cursor.execute(query)
         res = self.cursor.fetchall()
         return res
+
+    def create_engagement(self, score: int):
+        query = "INSERT INTO input (image_score) VALUES (%s)"
+        self.cursor.execute(query, (score, ))

@@ -1,5 +1,11 @@
 // Assuming you have Socket.IO available
-const socket = io.connect('http://' + document.domain + ':' + location.port);
+const socket = io.connect('http://127.0.0.1:8000');
+
+
+socket.on('connect', () => console.log('connected to socket'));
+socket.on("connect_error", (err) => {
+  console.log(`connect_error due to ${err.message}`);
+});
 
 socket.on('connect_error', function() {
     const container = document.getElementById('slideshow-container');

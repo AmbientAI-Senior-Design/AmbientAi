@@ -96,8 +96,8 @@ class MotionAndFacialDetection:
     def send_engagement_score(self):
         data = {"score":self.engagement_counter}
         try:
-            response = requests.post("http://localhost:5000/engagement", json=data)
-            print(f"Engagement score sent: {data['score']} - Server response: {response.text}")
+            response = requests.post("http://localhost:8000/engagement", json=data)
+            print(f"Engagement score sent: {data['score']} - Server response: {response.status_code}")
         except Exception as e:
             print(f"Failed to send engagement score: {e}")
 
@@ -187,6 +187,7 @@ class MotionAndFacialDetection:
 def timed_send_score(detection_run, interval=5):
     threading.Timer(interval, timed_send_score, [detection_run, interval]).start()
     detection_run.send_engagement_score()
+
 
 if __name__ == "__main__":
     motion_and_facial_detection = MotionAndFacialDetection()

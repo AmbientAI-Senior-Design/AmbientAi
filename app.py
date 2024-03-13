@@ -4,7 +4,7 @@ from flask import Flask, jsonify, render_template, request, redirect, url_for
 from src.config import (PORT, STATIC_FOLDER_PATH, application)
 
 # Instead of from src.routes import leaderboard, engagement
-from src.routes import leaderboard, engagement
+from src.routes import leaderboard
 
 # Instead of from src.services.flask_socket import socketio, emit_carrousel_refresh
 from src.services.flask_socket import socketio, emit_carrousel_refresh
@@ -89,22 +89,19 @@ DATABASE = "ClientInput"
 def update_engagement():
     scorerecv = request.json
     score = scorerecv.get("score", 0)
-    # adding score to db below
-    conn = sqlite3.connect(DATABASE)
-    cur = conn.cursor()
-    cur.execute("INSERT INTO input (image_score) VALUES (%s)", (score,))
-    conn.commit()
-    conn.close()
+    with InputManager() as db:
+        db.create_engagement(score)
+    if score > 0:
+        socketio.emit('update_data', ["http://127.0.0.1:8000/static/menu.PNG"])
+    return {
+        "status": 200,
+        "Message": "Score updated"
+    }
 
 @application.route("/current_score", methods=["GET"])
 def current_score():
-    conn = sqlite3.connect(DATABASE)
-    cur = conn.cursor()
-    cur.execute("SELECT image_score FROM input ORDER BY input_id DESC LIMIT 1")
-    row = cur.fetchone()
-    score = row[0] if row else 0
-    cur.close()
-    conn.close()
+    with InputManager() as db:
+        score = db.get_current_score()
     return jsonify({"Current eng score": score})
 
 if __name__ == '__main__':
@@ -112,7 +109,6 @@ if __name__ == '__main__':
 
     # register routes
     application.register_blueprint(leaderboard, url_prefix='/leaderboards')
-    application.register_blueprint(engagement, url_prefix="/engagement")
     # Run the Flask application with Socket.IO support
     socketio.run(application, port=PORT, debug=True, allow_unsafe_werkzeug=True)
 
