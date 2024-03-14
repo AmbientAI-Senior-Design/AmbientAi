@@ -52,6 +52,7 @@ class MotionAndFacialDetection:
         self.net = cv2.dnn.readNet("yolov7-tiny.weights", "yolov7-tiny.cfg")
         self.layer_names = self.net.getLayerNames()
         self.output_layers = [self.layer_names[i - 1] for i in self.net.getUnconnectedOutLayers()]
+        self.event = False 
 
     @staticmethod
     def rectangle_to_tuple(rectangle):
@@ -94,12 +95,14 @@ class MotionAndFacialDetection:
 
         return people_boxes
     def send_engagement_score(self):
-        data = {"score":self.engagement_counter}
-        try:
-            response = requests.post("http://localhost:8000/engagement", json=data)
-            print(f"Engagement score sent: {data['score']} - Server response: {response.status_code}")
-        except Exception as e:
-            print(f"Failed to send engagement score: {e}")
+        if self.engagement_counter > 0:
+            data = {"score":self.engagement_counter}
+            try:
+                response = requests.post("http://localhost:8000/engagement", json=data)
+                print(f"Engagement score sent: {data['score']} - Server response: {response.status_code}")
+                #self.engagement_counter = 0 #potentially adding this
+            except Exception as e:
+                print(f"Failed to send engagement score: {e}")
 
 
     def run(self):
@@ -161,8 +164,13 @@ class MotionAndFacialDetection:
                     cv2.polylines(frame, [np.array(interest_coordinates)], isClosed=True, color=(0, 0, 255),
                                   thickness=2)
                     engaged = True
+                    if not self.event:
+                        self.event = True
                     self.engagement_counter +=1
-
+            if not engaged and self.event:
+                self.event = False
+                self.send_engagement_score()
+                self.engagement_counter = 0
             print(f"Engagement Counter: {self.engagement_counter}")
             time_out = cv2.getTickCount()
             time_diff = time_out - time_in
@@ -184,14 +192,14 @@ class MotionAndFacialDetection:
         self.webcam_capture.release()
         cv2.destroyAllWindows()
 #using threading to send score every 5 seconds
-def timed_send_score(detection_run, interval=5):
-    threading.Timer(interval, timed_send_score, [detection_run, interval]).start()
-    detection_run.send_engagement_score()
+#def timed_send_score(detection_run, interval=5):
+    #threading.Timer(interval, timed_send_score, [detection_run, interval]).start()
+   # detection_run.send_engagement_score()
 
 
 if __name__ == "__main__":
     motion_and_facial_detection = MotionAndFacialDetection()
 
-    timed_send_score(motion_and_facial_detection)
+    #timed_send_score(motion_and_facial_detection)
 
     motion_and_facial_detection.run()

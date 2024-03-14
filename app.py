@@ -16,7 +16,7 @@ from src.services.db.input_manager import InputManager
 from src.controllers.leaderboard_controller import get_leaderboard
 
 import os
-import sqlite3
+
 
 # Instead of from src.models import InputModel
 from src.models import InputModel
@@ -110,5 +110,5 @@ if __name__ == '__main__':
     # register routes
     application.register_blueprint(leaderboard, url_prefix='/leaderboards')
     # Run the Flask application with Socket.IO support
-    socketio.run(application, port=PORT, debug=True, allow_unsafe_werkzeug=True)
+    socketio.run(application, port=8000, debug=True, allow_unsafe_werkzeug=True)
 
