@@ -113,7 +113,7 @@ def update_engagement():
 def send_activity(event):
     
     socketio.emit('message', {'data' : event})
-
+    return "Message sent"
 
 @application.route("/current_score", methods=["GET"])
 def current_score():
@@ -122,7 +122,7 @@ def current_score():
     return jsonify({"Current eng score": score})
 
 @application.route('/leaderboard') # puts data into leaderboard.html
-def leaderboard():
+def leaderboards():
     with InputManager() as db:
         data = db.leaderboard_data()
     return render_template('leaderboard.html', data = data)
