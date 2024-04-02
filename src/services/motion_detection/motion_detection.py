@@ -55,6 +55,7 @@ class MotionAndFacialDetection:
         self.output_layers = [self.layer_names[i - 1] for i in self.net.getUnconnectedOutLayers()]
         self.event = False 
         self.prev_activity = None
+        self.user_engaged_reported = False
 
     @staticmethod
     def rectangle_to_tuple(rectangle):
@@ -176,10 +177,11 @@ class MotionAndFacialDetection:
                     perimeter = calculate_triangle_perimeter(interest_coordinates[0], interest_coordinates[1], interest_coordinates[2])
                     distance = calculate_distance_in_cm(perimeter)
                     cv2.putText(frame, "User Engaged", text_post, cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
-                    event_type = "user_engaged"
-                    response = requests.post(f"http://localhost:8000/events/{event_type}")
-                    print(f"Activity state changed to {self.activity}. Response: {response.status_code}")
-            
+                    if not self.user_engaged_reported:
+                        event_type = "user_engaged"
+                        response = requests.post(f"http://localhost:8000/events/{event_type}")
+                        print(f"Activity state changed to {self.activity}. Response: {response.status_code}")
+                        self.user_engaged_reported = True
                     cv2.polylines(frame, [np.array(interest_coordinates)], isClosed=True, color=(0, 0, 255),
                                   thickness=2)
                     engaged = True
