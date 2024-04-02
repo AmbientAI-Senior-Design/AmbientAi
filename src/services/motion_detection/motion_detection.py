@@ -40,6 +40,7 @@ def calculate_distance_in_cm(perimeter):
 class MotionAndFacialDetection:
     def __init__(self):
         self.engagement_counter = 0
+        self.activity = False
         self.webcam_capture = cv2.VideoCapture(0)
         _, self.webcam_frame1 = self.webcam_capture.read()
         _, self.webcam_frame2 = self.webcam_capture.read()
@@ -53,6 +54,7 @@ class MotionAndFacialDetection:
         self.layer_names = self.net.getLayerNames()
         self.output_layers = [self.layer_names[i - 1] for i in self.net.getUnconnectedOutLayers()]
         self.event = False 
+        self.prev_activity = None
 
     @staticmethod
     def rectangle_to_tuple(rectangle):
@@ -69,6 +71,7 @@ class MotionAndFacialDetection:
         class_ids = []
         confidences = []
         boxes = []
+        counter2 = 0
         for out in outs:
             for detection in out:
                 scores = detection[5:]
@@ -81,6 +84,11 @@ class MotionAndFacialDetection:
                     boxes.append([x, y, w, h])
                     confidences.append(float(confidence))
                     class_ids.append(class_id)
+        if len(boxes) > 0:
+            self.activity = True
+        else:
+            self.activity = False
+        self.activity_check()
 
         # Apply non-maximum suppression to remove redundant overlapping boxes
         indices = cv2.dnn.NMSBoxes(boxes, confidences, 0.5, 0.4)
@@ -103,7 +111,15 @@ class MotionAndFacialDetection:
                 #self.engagement_counter = 0 #potentially adding this
             except Exception as e:
                 print(f"Failed to send engagement score: {e}")
-
+    def activity_check(self):
+        if self.activity != self.prev_activity:
+            self.activity = self.prev_activity
+            event_type = "not_engaged" if self.activity else "leave"
+            response = requests.post(f"http://localhost:8000/events/{event_type}")
+            print(f"Activity state changed to {self.activity}. Response: {response.status_code}")
+            
+            # Update the previous activity state after sending the POST request
+            self.prev_activity = self.activity
 
     def run(self):
         detection_frequency = 2
@@ -160,7 +176,10 @@ class MotionAndFacialDetection:
                     perimeter = calculate_triangle_perimeter(interest_coordinates[0], interest_coordinates[1], interest_coordinates[2])
                     distance = calculate_distance_in_cm(perimeter)
                     cv2.putText(frame, "User Engaged", text_post, cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
-
+                    event_type = "user_engaged"
+                    response = requests.post(f"http://localhost:8000/events/{event_type}")
+                    print(f"Activity state changed to {self.activity}. Response: {response.status_code}")
+            
                     cv2.polylines(frame, [np.array(interest_coordinates)], isClosed=True, color=(0, 0, 255),
                                   thickness=2)
                     engaged = True

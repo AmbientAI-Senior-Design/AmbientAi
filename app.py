@@ -15,11 +15,17 @@ from src.services.db.input_manager import InputManager
 # Instead of from src.controllers.leaderboard_controller import get_leaderboard
 from src.controllers.leaderboard_controller import get_leaderboard
 
+from flask_socketio import SocketIO, emit
+
 import os
+import random
 
 
 # Instead of from src.models import InputModel
 from src.models import InputModel
+
+
+
 
 @application.route('/billboard')
 def render_billboard():
@@ -46,6 +52,8 @@ def handle_refresh():
     emit_carrousel_refresh([src])
     return '200'
 
+def generate_random_id():
+    return random.randint(1,1000000)
 
 @application.route('/new-content', methods=["GET", "POST"])
 def render_new_content():
@@ -53,7 +61,7 @@ def render_new_content():
         # Get form data
         image_name = request.form.get('image_name')
         client_name = request.form.get('client_name')
-        image_file = request.files['image_file']
+        image_file = request.files['image_`file']
         # Ensure the 'static' folder exists, create it if not
         if not os.path.exists(STATIC_FOLDER_PATH):
             os.makedirs(STATIC_FOLDER_PATH)
@@ -62,6 +70,7 @@ def render_new_content():
         image_path = os.path.join(STATIC_FOLDER_PATH, image_file.filename)
         image_file.save(image_path)
         model = InputModel(
+            input_id = generate_random_id(),
             image_score=0,
             input_name=image_name,
             input_image_path=request.url_root + "static/" + image_file.filename,
@@ -84,13 +93,14 @@ def success():
 
 DATABASE = "ClientInput"
 
-#where the self.engagement_counter is suppose to send engagement score every 5 sec
+
+#where the self.engagement_counter is suppose to send engagement score every event 
 @application.route("/engagement",methods =["POST"])
 def update_engagement():
     scorerecv = request.json
     score = scorerecv.get("score", 0)
     with InputManager() as db:
-        db.create_engagement(score)
+        db.create_engagement(0, score) #  modify here, 0 needs to be input_id from client.js
     if score > 0:
         socketio.emit('update_data', ["http://127.0.0.1:8000/static/menu.PNG"])
     return {
@@ -98,11 +108,24 @@ def update_engagement():
         "Message": "Score updated"
     }
 
+#socketio = SocketIO(application, cors_allowed_origins="*")
+@application.route("/events/<event>", methods = ["POST"])
+def send_activity(event):
+    
+    socketio.emit('message', {'data' : event})
+
+
 @application.route("/current_score", methods=["GET"])
 def current_score():
     with InputManager() as db:
         score = db.get_current_score()
     return jsonify({"Current eng score": score})
+
+@application.route('/leaderboard') # puts data into leaderboard.html
+def leaderboard():
+    with InputManager() as db:
+        data = db.leaderboard_data()
+    return render_template('leaderboard.html', data = data)
 
 if __name__ == '__main__':
     # connect to database here
@@ -111,4 +134,6 @@ if __name__ == '__main__':
     application.register_blueprint(leaderboard, url_prefix='/leaderboards')
     # Run the Flask application with Socket.IO support
     socketio.run(application, port=8000, debug=True, allow_unsafe_werkzeug=True)
+
+    
 
