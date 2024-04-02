@@ -56,6 +56,8 @@ class MotionAndFacialDetection:
         self.event = False 
         self.prev_activity = None
         self.user_engaged_reported = False
+        self.flag = False
+        self.flag_prev = None
 
     @staticmethod
     def rectangle_to_tuple(rectangle):
@@ -108,19 +110,30 @@ class MotionAndFacialDetection:
             data = {"score":self.engagement_counter}
             try:
                 response = requests.post("http://localhost:8000/engagement", json=data)
+                not_engaged_response = requests.post("http://localhost:8000/events/not_engaged", json=data)
                 print(f"Engagement score sent: {data['score']} - Server response: {response.status_code}")
+                print(f"Activity state changed to not engaged Response: {not_engaged_response.status_code}")
+
                 #self.engagement_counter = 0 #potentially adding this
             except Exception as e:
                 print(f"Failed to send engagement score: {e}")
     def activity_check(self):
         if self.activity != self.prev_activity:
-            self.activity = self.prev_activity
-            event_type = "not_engaged" if self.activity else "leave"
+            if self.activity:
+                event_type = "not_engaged"
+                self.flag = False
+            else:
+                event_type = "leave"
             response = requests.post(f"http://localhost:8000/events/{event_type}")
             print(f"Activity state changed to {self.activity}. Response: {response.status_code}")
-            
+        if self.flag != self.flag_prev:
+            event_type = "user_engaged"
+            response = requests.post(f"http://localhost:8000/events/{event_type}")
+            print(f"Activity state changed to {self.activity}. Response: {response.status_code}")
+
             # Update the previous activity state after sending the POST request
-            self.prev_activity = self.activity
+        self.prev_activity = self.activity
+        self.flag_prev = self.flag
 
     def run(self):
         detection_frequency = 2
@@ -177,11 +190,8 @@ class MotionAndFacialDetection:
                     perimeter = calculate_triangle_perimeter(interest_coordinates[0], interest_coordinates[1], interest_coordinates[2])
                     distance = calculate_distance_in_cm(perimeter)
                     cv2.putText(frame, "User Engaged", text_post, cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
-                    if not self.user_engaged_reported:
-                        event_type = "user_engaged"
-                        response = requests.post(f"http://localhost:8000/events/{event_type}")
-                        print(f"Activity state changed to {self.activity}. Response: {response.status_code}")
-                        self.user_engaged_reported = True
+                    self.flag = True
+                    self.activity_check()
                     cv2.polylines(frame, [np.array(interest_coordinates)], isClosed=True, color=(0, 0, 255),
                                   thickness=2)
                     engaged = True
@@ -189,14 +199,14 @@ class MotionAndFacialDetection:
                         self.event = True
                     self.engagement_counter +=1
             if not engaged and self.event:
+                self.flag = False
+                self.activity_check()
                 self.event = False
                 self.send_engagement_score()
                 self.engagement_counter = 0
-            print(f"Engagement Counter: {self.engagement_counter}")
             time_out = cv2.getTickCount()
             time_diff = time_out - time_in
             ticks_to_seconds = cv2.getTickFrequency()
-            print(f"Time taken: {time_diff / ticks_to_seconds} seconds")
 
             if not engaged:
                 cv2.putText(frame, "User not Engaged", text_post, cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 2)
