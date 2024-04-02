@@ -5,32 +5,51 @@
     <title>Client Terminal</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: rgb(9, 1, 1);
-            color: #0f0101;
+            background-color: #f4f4f4;
+            color: #333;
         }
         .container {
             width: 80%;
-            margin: auto;
+            margin: 20px auto;
             overflow: hidden;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
         header {
-            background: #119773;
-            color: #e0e5e4;
+            background: #007bff;
+            color: #ffffff;
             padding-top: 30px;
             min-height: 70px;
-            border-bottom: #f0f2f3 1px solid;
+            border-bottom: #0275d8 3px solid;
         }
         header h1 {
             text-align: center;
             margin: 0;
-            padding-bottom: 10px;
+            padding-bottom: 15px;
+        }
+        nav {
+            display: flex;
+            justify-content: center;
+            background: #333;
+            padding: 10px 0;
+        }
+        nav a {
+            color: #fff;
+            padding: 10px 15px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        nav a:hover {
+            background: #ddd;
+            color: #333;
         }
         form {
-            margin-top: 20px;
-            background: #fff;
+            background: #fafafa;
             padding: 20px;
             border-radius: 8px;
         }
@@ -38,6 +57,7 @@
             margin-top: 10px;
             display: block;
             font-weight: bold;
+            color: #333;
         }
         input[type="text"],
         input[type="file"] {
@@ -46,22 +66,44 @@
             margin-top: 5px;
             border-radius: 4px;
             border: 1px solid #ddd;
-            box-sizing: border-box; /* Added */
         }
         input[type="submit"] {
+            display: block;
             width: 100%;
-            background: #50a3a2;
+            background: #007bff;
             color: white;
             padding: 10px;
+            margin-top: 10px;
             border: 0;
             border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
         }
         input[type="submit"]:hover {
-            background: #f7f8f9;
+            background: #0056b3;
+            color: #ffffff;
         }
     </style>
+    <script>
+        // Function to validate the form and redirect
+        function validateAndSubmit(event) {
+            event.preventDefault(); // Prevent the default form submission
+
+            // Get form values
+            var imageName = document.getElementById('image_name').value.trim();
+            var imageFile = document.getElementById('image_file').value;
+            var clientName = document.getElementById('client_name').value.trim();
+
+            // Check if all fields have values
+            if (imageName && imageFile && clientName) {
+                // Redirect to success.html
+                window.location.href = 'success';
+            } else {
+                // Alert the user to fill all fields
+                alert('Please fill in all fields and select an image file.');
+            }
+        }
+    </script>
 </head>
 <body>
     <header>
@@ -70,18 +112,19 @@
     <nav>
         <a href="/">Home</a>
         <a href="/new-content">Add New Content</a>
-        <a href="#">Go to Billboard</a>
+        <a href="/billboard">Go to Billboard</a>
     </nav>
     <div class="container">
-        <form method="post" enctype="multipart/form-data">
+        <form onsubmit="validateAndSubmit(event)" enctype="multipart/form-data">
             <label for="image_name">Image Name:</label>
-            <input type="text" id="image_name" name="image_name">
+            <input type="text" id="image_name" name="image_name" required>
             <label for="image_file">Image File:</label>
-            <input type="file" id="image_file" name="image_file" accept="image/*">
+            <input type="file" id="image_file" name="image_file" accept="image/*" required>
             <label for="client_name">Client Name:</label>
-            <input type="text" id="client_name" name="client_name">
+            <input type="text" id="client_name" name="client_name" required>
             <input type="submit" value="Upload Image">
         </form>
     </div>
 </body>
 </html>
+

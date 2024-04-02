@@ -2,11 +2,52 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Success Notification</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            text-align: center;
+            padding: 50px;
+        }
+
+        h1 {
+            color: #0d9dfd;
+        }
+
+        a {
+            display: inline-block;
+            background-color: #0871a6;
+            color: #fff;
+            padding: 10px 20px;
+            margin-top: 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+
+        a:hover {
+            background-color: #0a77ca;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 </head>
 <body>
 
-<h1>Content created successfully</h1>
-<a href="/dashboard">Return to dashboard</a>
+<div class="container">
+    <h1>Content Created Successfully!</h1>
+    <p>Thank you for your submission! Your content has been successfully created. You can return to the dashboard to view your content.</p>
+    <a href="/dashboard">Return to Dashboard</a>
+</div>
+
 </body>
 </html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Current Engagement Score</title>
+    <script>
+        // Function to fetch and update the current score
+        function updateCurrentScore() {
+            fetch('/current_score')
+                .then(response => response.json())
+                .then(data => {
+                    // Assuming the response includes a key 'current_score'
+                    document.getElementById('score').innerText = data.current_score;
+                })
+                .catch(error => console.error('Error fetching current score:', error));
+        }
+
+        // Update the score every 5 seconds
+        setInterval(updateCurrentScore, 5000);
+
+        // Update the score immediately when the page loads
+        document.addEventListener('DOMContentLoaded', updateCurrentScore);
+    </script>
+</head>
+<body>
+    <h1>Current Engagement Score</h1>
+    <p>The current engagement score is: <span id="score">Loading...</span></p>
+</body>
+</html>

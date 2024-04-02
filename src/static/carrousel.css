@@ -5,6 +5,8 @@
   max-width: 1000px;
   position: relative;
   margin: auto;
+ background-color: black;
+  height: 100vh;
 }
 
 /* Hide the images by default */
@@ -93,3 +95,4 @@
   from {opacity: .4}
   to {opacity: 1}
 }
+

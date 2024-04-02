@@ -1,6 +1,8 @@
 from src.services.db.manager import DatabaseManager
 from src.models.input_model import InputModel
 
+# a get request
+
 
 class InputManager(DatabaseManager):
 
@@ -46,9 +48,16 @@ class InputManager(DatabaseManager):
 
         return leaderboard_list
 
+    def get_current_score(self):
+        query = "SELECT image_score FROM input ORDER BY input_id DESC LIMIT 1"
+        self.cursor.execute(query)
+        res = self.cursor.fetchone()
+        score = res[0] if res else 0
+        return score
+
     def create_input(self, data: InputModel):
-        query = "INSERT INTO input (input_name, input_image_path, client_name, image_score) VALUES (%s, %s, %s, %s)"
-        res = self.cursor.execute(query, (data.input_name, data.input_image_path, data.client_name, data.image_score))
+        query = "INSERT INTO input (input_id, input_name, input_image_path, client_name, image_score) VALUES (%s, %s, %s, %s, %s)"
+        res = self.cursor.execute(query, (data.input_id, data.input_name, data.input_image_path, data.client_name, data.image_score))
         return res
 
     def get_highest_ranked_input_src(self) -> str:
@@ -63,3 +72,18 @@ class InputManager(DatabaseManager):
         self.cursor.execute(query)
         res = self.cursor.fetchall()
         return res
+
+    def update_engagement(self, input_id: int, score: int):
+        query = "UPDATE input SET image_score = %s WHERE input_id = %s"
+        self.cursor.execute(query, (score, input_id))
+
+    def input_id_exist(self):
+        query = "SELECT EXISTS(SELECT 1 FROM input)"
+        self.cursor.execute(query)
+        return self.cursor.fetchone()[0]
+    
+    def leaderboard_data(self): # gathers data for leaderboard.html
+        query = "SELECT input_name, image_score FROM input"
+        self.cursor.execute(query)
+        data = self.cursor.fetchall()
+        return data

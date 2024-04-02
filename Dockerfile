@@ -19,5 +19,5 @@ EXPOSE 80
 # Define environment variable
 ENV NAME World
 
-# Run app.py with gunicorn when the container launches
+# Run application.py with gunicorn when the container launches
 CMD ["gunicorn", "-b", "0.0.0.0:80", "src.app:application"]
