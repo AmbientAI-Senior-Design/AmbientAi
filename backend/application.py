@@ -8,12 +8,7 @@ from src.routes import leaderboard
 
 # Instead of from src.services.flask_socket import socketio, emit_carrousel_refresh
 from src.services.flask_socket import socketio, emit_carrousel_refresh
-
-# Instead of from src.services.db.input_manager import InputManager
 from src.services.db.input_manager import InputManager
-
-# Instead of from src.controllers.leaderboard_controller import get_leaderboard
-from src.controllers.leaderboard_controller import get_leaderboard
 
 from flask_socketio import SocketIO, emit
 
@@ -23,20 +18,6 @@ import random
 
 # Instead of from src.models import InputModel
 from src.models import InputModel
-
-
-@application.route('/billboard')
-def render_billboard():
-    with InputManager() as db:
-        initial_src = db.get_highest_ranked_input_src()
-        return render_template('billboard.html', initial_src=initial_src)
-
-
-@application.route('/dashboard')
-def render_leaderboard():
-    # Pass the list of LeaderBoard objects to the template
-    leaderboard_list = get_leaderboard()
-    return render_template('dashboard.html', leaderboard_list=leaderboard_list)
 
 
 @application.route('/')

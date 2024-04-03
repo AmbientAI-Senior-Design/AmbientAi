@@ -32,5 +32,3 @@ class InputManager(DatabaseManager):
         )
         res = self.cursor.execute(query, params)
         return res
-
-        
