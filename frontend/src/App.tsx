@@ -13,7 +13,7 @@ function App() {
     const deckRef = useRef<Reveal.Api | null>(null); // reference to deck reveal instance
     const [engagementState, setEngagementState] = useState<EngagementState>("enter");
 
-    useSocket(setEngagementState);
+    const {isConnected} = useSocket(setEngagementState);
     const [isReady, setIsReady] = useState(false);
    
 
@@ -68,7 +68,7 @@ function App() {
         };
     }, [engagementState]);
 
-
+ 
     return (
        <div
        style={{

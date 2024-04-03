@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 if (!import.meta.env.VITE_SOCKET_URL) {
     throw new Error('Socket URL is not defined');
@@ -8,16 +8,20 @@ if (!import.meta.env.VITE_SOCKET_URL) {
 const URL = import.meta.env.VITE_SOCKET_URL;
 
 
-export const socket = io(URL!);
+const socket = io(URL!);
 
 export const useSocket = (setEngagementState: (value: any) => void) => {
 
-  
+    const [isConnected, setIsConnected] = useState(false);
+    
+
     useEffect(() => {
       function onConnect() {
+        setIsConnected(true);
       }
   
       function onDisconnect() {
+        setIsConnected(false);
       }
   
       function onFooEvent(value: any) {
@@ -31,6 +35,9 @@ export const useSocket = (setEngagementState: (value: any) => void) => {
       
     }, []);
 
-    
+    return {
+      isConnected,
+      
+    }
     
 }
