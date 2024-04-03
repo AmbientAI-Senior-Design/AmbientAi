@@ -25,6 +25,7 @@ import random
 from src.models import InputModel
 
 
+application = Flask(__name__, template_folder='src/templates')
 
 
 @application.route('/billboard')
