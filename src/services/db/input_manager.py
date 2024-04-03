@@ -45,4 +45,9 @@ class InputManager(DatabaseManager):
         update2 = self.cursor.execute(query, (numberOfPeople, numberOfEngagedPeople, id))
         return update2
 
+    def get_initial_data(self):
+        query = "SELECT * FROM input"
+        self.cursor.execute(query)
+        data = self.cursor.fetchall()
+        return data
         

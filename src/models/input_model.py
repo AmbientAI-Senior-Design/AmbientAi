@@ -21,3 +21,5 @@ class InputModel(BaseModel):
 class backendmodel(BaseModel):
     image_name: str
     score: int
+
+

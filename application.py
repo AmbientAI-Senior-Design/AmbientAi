@@ -156,21 +156,11 @@ def send_activity(event):
     socketio.emit('message', {'data' : event})
     return "Message sent"
 
-@socketio.on('connect') # sends schema to client upon app launch
+@application.route('/connect', methods=["GET"]) # sends schema to client upon app launch
 def send_schema():
-    input_schema = {
-        "table": "input",  # Updated table name to match your provided schema
-        "columns": [
-            {"name": "id", "type": "INT", "constraints": ["AUTO_INCREMENT", "PRIMARY KEY"]},
-            {"name": "date", "type": "DATE"},
-            {"name": "duration", "type": "TIME"},
-            {"name": "numberOfPeople", "type": "INT"},
-            {"name": "numberOfEngagedPeople", "type": "INT"},
-            {"name": "score", "type": "FLOAT"},
-            {"name": "image_data", "type": "JSON"},  # Added to reflect your updated schema
-        ]
-    }
-    socketio.emit('schema_data', input_schema)
+    with InputManager() as db:
+        res = db.get_initial_data()
+        return jsonify(res)
 
 
 @application.route('/leaderboard') # puts data into leaderboard.html
