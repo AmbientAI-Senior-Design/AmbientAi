@@ -1,9 +1,25 @@
 from pydantic import BaseModel
+from typing import List, Dict
 
+class ImageData(BaseModel):
+    filename: str
+    description: str
+
+class ImageDataStructure(BaseModel):
+    main_image: ImageData
+    related_images: List[ImageData]
 
 class InputModel(BaseModel):
-    input_id: str
-    image_score: int
-    input_name: str
-    input_image_path: str
-    client_name: str
+    id: int
+    date: str
+    duration: str
+    numberOfPeople: int
+    numberOfEngagedPeople: int
+    score: float
+    image_data: ImageDataStructure
+
+class backendmodel(BaseModel):
+    image_name: str
+    score: int
+
+

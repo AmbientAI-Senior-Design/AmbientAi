@@ -9,11 +9,11 @@ engagement_counter = 0
 
 # Used to get currently displayed content information (id, duration, etc..)
 def get_current_content():
-    req = requests.get("http://localhost:6942/content")
+    req = requests.get("http://localhost:8000/content")
     return req.json()
 
 def post_engagement_report(report):
-    req = requests.post("http://localhost:6942/engagement-reports", json=report)
+    req = requests.post("http://localhost:8000/engagement-reports", json=report)
     return req
 
 
@@ -46,11 +46,11 @@ class MotionAndFacialDetection:
         _, self.webcam_frame2 = self.webcam_capture.read()
 
         self.face_detector = dlib.get_frontal_face_detector()
-        self.shape_predictor = dlib.shape_predictor("/Users/patrickmenendez/PycharmProjects/AmbientAi/services/motion_detection/shape_predictor_68_face_landmarks.dat")
+        self.shape_predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
         self.hog = cv2.HOGDescriptor()
         self.face_trackers = []
         # Load pre-trained model
-        self.net = cv2.dnn.readNet("/Users/patrickmenendez/PycharmProjects/AmbientAi/services/motion_detection/yolov7-tiny.weights", "/Users/patrickmenendez/PycharmProjects/AmbientAi/services/motion_detection/yolov7-tiny.cfg")
+        self.net = cv2.dnn.readNet("yolov7-tiny.weights", "yolov7-tiny.cfg")
         self.layer_names = self.net.getLayerNames()
         self.output_layers = [self.layer_names[i - 1] for i in self.net.getUnconnectedOutLayers()]
         self.event = False 
@@ -109,8 +109,8 @@ class MotionAndFacialDetection:
         if self.engagement_counter > 0:
             data = {"score":self.engagement_counter}
             try:
-                response = requests.post("http://localhost:6942/engagement", json=data)
-                not_engaged_response = requests.post("http://localhost:6942/events/not_engaged", json=data)
+                response = requests.post("http://localhost:8000/engagement", json=data)
+                not_engaged_response = requests.post("http://localhost:8000/events/not_engaged", json=data)
                 print(f"Engagement score sent: {data['score']} - Server response: {response.status_code}")
                 print(f"Activity state changed to not engaged Response: {not_engaged_response.status_code}")
 
@@ -124,11 +124,11 @@ class MotionAndFacialDetection:
                 self.flag = False
             else:
                 event_type = "leave"
-            response = requests.post(f"http://localhost:6942/events/{event_type}")
+            response = requests.post(f"http://localhost:8000/events/{event_type}")
             print(f"Activity state changed to {self.activity}. Response: {response.status_code}")
         if self.flag != self.flag_prev:
             event_type = "user_engaged"
-            response = requests.post(f"http://localhost:6942/events/{event_type}")
+            response = requests.post(f"http://localhost:8000/events/{event_type}")
             print(f"Activity state changed to {self.activity}. Response: {response.status_code}")
 
             # Update the previous activity state after sending the POST request

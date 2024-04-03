@@ -102,7 +102,7 @@ def update_engagement():
     with InputManager() as db:
         db.create_engagement(0, score) #  modify here, 0 needs to be input_id from client.js
     if score > 0:
-        socketio.emit('update_data', ["http://127.0.0.1:6942/static/menu.PNG"])
+        socketio.emit('update_data', ["http://127.0.0.1:8000/static/menu.PNG"])
     return {
         "status": 200,
         "Message": "Score updated"
@@ -133,7 +133,7 @@ if __name__ == '__main__':
     # register routes
     application.register_blueprint(leaderboard, url_prefix='/leaderboards')
     # Run the Flask application with Socket.IO support
-    socketio.run(application, port=6942, debug=True, allow_unsafe_werkzeug=True)
+    socketio.run(application, port=8000, debug=True, allow_unsafe_werkzeug=True)
 
     
 

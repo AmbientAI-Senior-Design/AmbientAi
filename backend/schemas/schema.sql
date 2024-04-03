@@ -1,12 +1,35 @@
-CREATE DATABASE IF NOT EXISTS `ClientInput`;
+CREATE DATABASE IF NOT EXISTS ClientInput;
 
-use ClientInput;
+USE ClientInput;
 
-create table input (
-    input_id INT, 
-    image_score INT,
-    input_name VARCHAR(255),
-    input_image_path  VARCHAR(225),
-    client_name VARCHAR(225)
+CREATE TABLE Post (
+    id INT AUTO_INCREMENT PRIMARY KEY
 );
 
+CREATE TABLE EngagementReport (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    date DATE,
+    duration INT,
+    numberOfPeople INT,
+    numberOfEngagedPeople INT,
+    score FLOAT,
+    fk_post_id INT,
+    FOREIGN KEY (fk_post_id) REFERENCES Post(id)
+);
+
+CREATE TABLE Slide (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    path VARCHAR(255),
+    description TEXT,
+    fk_post_id INT,
+    FOREIGN KEY (fk_post_id) REFERENCES Post(id),
+    INDEX (fk_post_id)
+);
+
+
+CREATE TABLE backend (
+    image_name VARCHAR(255),
+    score int
+
+
+);
