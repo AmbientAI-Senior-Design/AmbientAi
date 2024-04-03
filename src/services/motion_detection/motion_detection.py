@@ -58,6 +58,8 @@ class MotionAndFacialDetection:
         self.user_engaged_reported = False
         self.flag = False
         self.flag_prev = None
+        self.numberOfPeople=0
+        self.numberOfEngagedPeople = 0
 
     @staticmethod
     def rectangle_to_tuple(rectangle):
@@ -107,16 +109,38 @@ class MotionAndFacialDetection:
         return people_boxes
     def send_engagement_score(self):
         if self.engagement_counter > 0:
-            data = {"score":self.engagement_counter}
+            data = {
+                "score": self.engagement_counter,
+                "numberOfPeople": self.numberOfPeople,
+                "numberOfEngagedPeople": self.numberOfEngagedPeople
+            }
             try:
                 response = requests.post("http://localhost:8000/engagement", json=data)
-                not_engaged_response = requests.post("http://localhost:8000/events/not_engaged", json=data)
-                print(f"Engagement score sent: {data['score']} - Server response: {response.status_code}")
-                print(f"Activity state changed to not engaged Response: {not_engaged_response.status_code}")
+                print(f"Engagement data sent: {data} - Server response: {response.status_code}")
 
-                #self.engagement_counter = 0 #potentially adding this
+                not_engaged_response = requests.post("http://localhost:8000/events/not_engaged", json=data)
+                print(f"Activity state changed to not engaged. Response: {not_engaged_response.status_code}")
+
+                self.engagement_counter = 0
+                self.numberOfPeople = 0
+                self.numberOfEngagedPeople = 0
+                
             except Exception as e:
-                print(f"Failed to send engagement score: {e}")
+                print(f"Failed to send engagement data: {e}")
+
+
+
+    #    if self.engagement_counter > 0:
+    #        data = {"score":self.engagement_counter}
+    #        try:
+    #            response = requests.post("http://localhost:8000/engagement", json=data)
+    #            not_engaged_response = requests.post("http://localhost:8000/events/not_engaged", json=data)
+    #            print(f"Engagement score sent: {data['score']} - Server response: {response.status_code}")
+    #            print(f"Activity state changed to not engaged Response: {not_engaged_response.status_code}")
+    #
+    #            #self.engagement_counter = 0 #potentially adding this
+    #        except Exception as e:
+    #            print(f"Failed to send engagement score: {e}")
     def activity_check(self):
         if self.activity != self.prev_activity:
             if self.activity:
@@ -195,6 +219,7 @@ class MotionAndFacialDetection:
                     cv2.polylines(frame, [np.array(interest_coordinates)], isClosed=True, color=(0, 0, 255),
                                   thickness=2)
                     engaged = True
+                    self.numberOfEngagedPeople += 1
                     if not self.event:
                         self.event = True
                     self.engagement_counter +=1

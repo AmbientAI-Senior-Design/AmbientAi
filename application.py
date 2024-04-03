@@ -2,7 +2,7 @@
 
 from flask import Flask, jsonify, render_template, request, redirect, url_for
 from src.config import (PORT, STATIC_FOLDER_PATH, application)
-
+from flask import Flask, request, jsonify, url_for
 # Instead of from src.routes import leaderboard, engagement
 from src.routes import leaderboard
 
@@ -17,9 +17,12 @@ from src.controllers.leaderboard_controller import get_leaderboard
 
 from flask_socketio import SocketIO, emit
 
+import json
+from datetime import datetime
 import os
 import random
 
+from werkzeug.utils import secure_filename
 
 # Instead of from src.models import InputModel
 from src.models import InputModel
@@ -27,18 +30,18 @@ from src.models import InputModel
 
 
 
-@application.route('/billboard')
-def render_billboard():
-    with InputManager() as db:
-        initial_src = db.get_highest_ranked_input_src()
-        return render_template('billboard.html', initial_src=initial_src)
+#@application.route('/billboard')
+#def render_billboard():
+#    with InputManager() as db:
+#        initial_src = db.get_highest_ranked_input_src()
+#        return render_template('billboard.html', initial_src=initial_src)
 
 
-@application.route('/dashboard')
-def render_leaderboard():
-    # Pass the list of LeaderBoard objects to the template
-    leaderboard_list = get_leaderboard()
-    return render_template('dashboard.html', leaderboard_list=leaderboard_list)
+#@application.route('/dashboard')
+#def render_leaderboard():
+#    # Pass the list of LeaderBoard objects to the template
+#    leaderboard_list = get_leaderboard()
+#    return render_template('dashboard.html', leaderboard_list=leaderboard_list)
 
 
 @application.route('/')
@@ -58,28 +61,63 @@ def generate_random_id():
 @application.route('/new-content', methods=["GET", "POST"])
 def render_new_content():
     if request.method == 'POST':
-        # Get form data
-        image_name = request.form.get('image_name')
+
         client_name = request.form.get('client_name')
-        image_file = request.files['image_`file']
+        curr_date = request.form.get('date')
+        main_image_file = request.files.get('main_image')
+        main_image_description = request.form.get('main_image_description')
+        related_image1_file = request.files.get('related_image1')
+        related_image1_description = request.form.get('related_image1_description')
+        related_image2_file = request.files.get('related_image2')
+        related_image2_description = request.form.get('related_image2_description')
+        related_image3_file = request.files.get('related_image3')
+        related_image3_description = request.form.get('related_image3_description')
+
         # Ensure the 'static' folder exists, create it if not
         if not os.path.exists(STATIC_FOLDER_PATH):
             os.makedirs(STATIC_FOLDER_PATH)
 
-        # Save the uploaded image file to the 'static' folder
-        image_path = os.path.join(STATIC_FOLDER_PATH, image_file.filename)
-        image_file.save(image_path)
+        def save_image(image_file):
+            if image_file:
+                filename = secure_filename(image_file.filename)
+                image_path = os.path.join(STATIC_FOLDER_PATH, filename)
+                image_file.save(image_path)
+                return request.url_root + "static/" + filename
+            return None
+        
+        main_image_path = save_image(main_image_file)
+        related_image_paths = [
+            save_image(related_image1_file),
+            save_image(related_image2_file),
+            save_image(related_image3_file)
+        ]
+        related_descriptions = [
+            related_image1_description,
+            related_image2_description,
+            related_image3_description
+
+        ]
+        image_data = json.dumps({
+            "main_image": {
+                "path": main_image_path,
+                "description": main_image_description
+            },
+            "related_images": [
+                {"path": path, "description": desc} 
+                for path, desc in zip(related_image_paths, related_descriptions) if path
+            ]
+        })
         model = InputModel(
-            input_id = generate_random_id(),
-            image_score=0,
-            input_name=image_name,
-            input_image_path=request.url_root + "static/" + image_file.filename,
-            client_name=client_name
+            date = curr_date,
+            duration = "00:00:10",
+            numberOfPeople = 0,
+            numberOfEngagedPeople=0,
+            score=0,
+            image_data=json.dumps(image_data)  # Convert image_data to JSON string for database storage
         )
         with InputManager() as db:
             db.create_input(model)
-
-        # Perform any other processing with the form data as needed
+        #return jsonify({"message": "Content and images uploaded successfully"}), 200
 
         return redirect(url_for('success'))
 
@@ -93,33 +131,47 @@ def success():
 
 DATABASE = "ClientInput"
 
+#@application.route("/brain", methods = ["POST"])
+#def brain():
+
+
+
 
 #where the self.engagement_counter is suppose to send engagement score every event 
 @application.route("/engagement",methods =["POST"])
 def update_engagement():
-    scorerecv = request.json
-    score = scorerecv.get("score", 0)
+    received_data = request.json
+    score = received_data.get("score", 0)
+    numberOfPeople = received_data.get("numberOfPeople", 0)
+    numberOfEngagedPeople = received_data.get("numberOfEngagedPeople", 0)
+    
     with InputManager() as db:
-        db.create_engagement(0, score) #  modify here, 0 needs to be input_id from client.js
-    if score > 0:
-        socketio.emit('update_data', ["http://127.0.0.1:8000/static/menu.PNG"])
-    return {
-        "status": 200,
-        "Message": "Score updated"
-    }
+        db.add_score(score,id) #  modify here, 0 needs to be input_id from client.js
+        db.add_numberof(numberOfPeople,numberOfEngagedPeople)
+    
 
-#socketio = SocketIO(application, cors_allowed_origins="*")
 @application.route("/events/<event>", methods = ["POST"])
 def send_activity(event):
     
     socketio.emit('message', {'data' : event})
     return "Message sent"
 
-@application.route("/current_score", methods=["GET"])
-def current_score():
-    with InputManager() as db:
-        score = db.get_current_score()
-    return jsonify({"Current eng score": score})
+@socketio.on('connect') # sends schema to client upon app launch
+def send_schema():
+    input_schema = {
+        "table": "input",  # Updated table name to match your provided schema
+        "columns": [
+            {"name": "id", "type": "INT", "constraints": ["AUTO_INCREMENT", "PRIMARY KEY"]},
+            {"name": "date", "type": "DATE"},
+            {"name": "duration", "type": "TIME"},
+            {"name": "numberOfPeople", "type": "INT"},
+            {"name": "numberOfEngagedPeople", "type": "INT"},
+            {"name": "score", "type": "FLOAT"},
+            {"name": "image_data", "type": "JSON"},  # Added to reflect your updated schema
+        ]
+    }
+    socketio.emit('schema_data', input_schema)
+
 
 @application.route('/leaderboard') # puts data into leaderboard.html
 def leaderboards():

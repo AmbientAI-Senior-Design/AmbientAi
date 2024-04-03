@@ -1,12 +1,19 @@
-CREATE DATABASE IF NOT EXISTS `ClientInput`;
+CREATE DATABASE IF NOT EXISTS ClientInput;
 
-use ClientInput;
+USE ClientInput;
 
-create table input (
-    input_id INT, 
-    image_score INT,
-    input_name VARCHAR(255),
-    input_image_path  VARCHAR(225),
-    client_name VARCHAR(225)
+CREATE TABLE input (
+  id INT AUTO_INCREMENT,
+  date DATE,
+  duration TIME,
+  numberOfPeople INT,
+  numberOfEngagedPeople INT,
+  score FLOAT,
+  image_data JSON,
 );
 
+CREATE TABLE backend (
+    image_name VARCHAR(255),
+    score int
+
+);
