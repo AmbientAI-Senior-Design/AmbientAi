@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:latest
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+      MYSQL_DATABASE: mydatabase
+      MYSQL_USER: myuser
+      MYSQL_PASSWORD: mypassword
+    ports:
+      - "1234:1234"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  flask:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: flask_app
+    restart: always
+    ports:
+      - "6942:6942"
+    depends_on:
+      - mysql
+
+  react:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - FLASK_PORT=8082  # Pass the port number here
+    container_name: react_app
+    restart: always
+    ports:
+      - "4173:5000"
+
+volumes:
+  mysql_data:
