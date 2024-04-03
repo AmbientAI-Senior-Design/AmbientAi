@@ -1,12 +1,10 @@
 from src.services.db.manager import DatabaseManager
-from src.models.input_model import InputModel
+from src.models.input_model import PostModel, EngagementReportModel, SlideModel, BackendModel
 
 # a get request
 
 
 class InputManager(DatabaseManager):
-
-
 
 
     def __init__(self):
@@ -34,20 +32,5 @@ class InputManager(DatabaseManager):
         )
         res = self.cursor.execute(query, params)
         return res
-    
-    def add_score(self, score, id):
-        query = "UPDATE input SET score = score + %s WHERE id = %s"
-        update = self.cursor.execute(query, (score, id))
-        return update
-    
-    def add_numberof(self, numberOfPeople,numberOfEngagedPeople, id):
-        query = "UPDATE input SET numberOfPeople = numberOfPeople + %s, numberOfEngagedPeople = numberOfEngagedPeople + %s WHERE id = %s"
-        update2 = self.cursor.execute(query, (numberOfPeople, numberOfEngagedPeople, id))
-        return update2
 
-    def get_initial_data(self):
-        query = "SELECT * FROM input"
-        self.cursor.execute(query)
-        data = self.cursor.fetchall()
-        return data
         

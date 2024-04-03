@@ -1,24 +1,27 @@
 from pydantic import BaseModel
-from typing import List, Dict
+from typing import List, Optional, Text
+from datetime import date
 
-class ImageData(BaseModel):
-    filename: str
-    description: str
+class PostModel(BaseModel):
+    id: Optional[int] = None  
 
-class ImageDataStructure(BaseModel):
-    main_image: ImageData
-    related_images: List[ImageData]
-
-class InputModel(BaseModel):
-    id: int
-    date: str
-    duration: str
+class EngagementReportModel(BaseModel):
+    id: Optional[int] = None  
+    date: date
+    duration: int
     numberOfPeople: int
     numberOfEngagedPeople: int
     score: float
-    image_data: ImageDataStructure
+    fk_post_id: int
 
-class backendmodel(BaseModel):
+class SlideModel(BaseModel):
+    id: Optional[int] = None  
+    path: str
+    description: Text
+    fk_post_id: int
+    slide_index: int
+
+class BackendModel(BaseModel):
     image_name: str
     score: int
 
