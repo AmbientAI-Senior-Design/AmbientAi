@@ -6,6 +6,54 @@ import "reveal.js/dist/theme/white.css";
 import {motion} from "framer-motion";
 import { useSocket } from "./socket";
 import { EngagementState } from "./types/engagement-state";
+import { SlideContent } from "./types/slide-content";
+import {mockSlides} from "../src/mock/slides";
+
+
+type SlideProps = {
+    setSlideId: (slideId: number | null) => void;
+    slide: SlideContent;
+}
+
+const Slide = ({setSlideId, slide}: SlideProps) => {
+    useEffect(() => {
+        setSlideId(slide.slideId);
+        return () => {
+            setSlideId(null);
+        }
+    }, []);
+
+    return (
+        <section postId={slide.slideId} index={slide.index}>
+            slide
+        </section>
+    )
+}
+
+
+type PostProps = {
+    postId: number;
+    setPostId: (postId: number | null) => void;
+    setSlideId: (slideId: number | null) => void;
+    slides: SlideContent[];
+}
+
+const Post = ({setPostId, postId, setSlideId, slides}: PostProps) => {
+
+    useEffect(() => {
+        setPostId(postId);
+    }, []);
+
+    return (
+        <section id={`${postId}`}>
+            {
+                slides.map((slide, index) => (
+                    <Slide key={index} setSlideId={setSlideId} slide={slide} />
+                ))
+            }
+        </section>
+    )
+}
 
 
 function App() {
@@ -13,7 +61,7 @@ function App() {
     const deckRef = useRef<Reveal.Api | null>(null); // reference to deck reveal instance
     const [engagementState, setEngagementState] = useState<EngagementState>("enter");
 
-    const {isConnected} = useSocket(setEngagementState);
+    const {setPostId, setSlideId } = useSocket(setEngagementState);
     const [isReady, setIsReady] = useState(false);
    
 
@@ -46,13 +94,23 @@ function App() {
             loop: true,
             controls: false,
             progress: false,
+            touch: false,
+            
+        });
+
+        deckRef.current.on("slidechanged", (event) => {
+            // @ts-ignore
+            setPostId(event.currentSlide.getAttribute("postId")!);
+            // @ts-ignore
+            setSlideId(event.currentSlide.getAttribute("index")!);
             
         });
 
 
-        deckRef.current.initialize().then(async () => {
+        deckRef.current.initialize().then(() => {
             // good place for event handlers and plugin setups
             setIsReady(true);
+            
         });
 
         return () => {
@@ -94,30 +152,15 @@ function App() {
          height: "100vh",
         }}>
  
-          <div className="reveal" ref={deckDivRef}>
+          <div className="reveal" ref={deckDivRef} >
               <div className="slides">
-                  <section>
-                       <section><div>
-                         
-                         <img src="https:/placehold.co/200">
-                         </img>
-                       </div></section>
-                       <section>Vertical 1</section>
-                       <section>Vertical 2</section>
-                       <section>Vertical 3</section>
-                  </section>
-                  <section>
-                       <section>Horizontal 2</section>
-                       <section>Vertical 1</section>
-                       <section>Vertical 2</section>
-                       <section>Vertical 3</section>
-                  </section>
-                  <section>
-                       <section>Horizontal 3</section>
-                       <section>Vertical 1</section>
-                       <section>Vertical 2</section>
-                       <section>Vertical 3</section>
-                  </section>
+                  {
+
+                    mockSlides.map((post, index) => (
+                        <Post key={index} postId={post.slideId} setPostId={setPostId} setSlideId={setSlideId} slides={post.slides} />
+                    ))
+
+                  }
               </div>
           </div>
         </div>

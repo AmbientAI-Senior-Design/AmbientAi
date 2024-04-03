@@ -25,8 +25,6 @@ import random
 from src.models import InputModel
 
 
-
-
 @application.route('/billboard')
 def render_billboard():
     with InputManager() as db:
@@ -93,6 +91,12 @@ def success():
 
 DATABASE = "ClientInput"
 
+# emits the payload inot the socket signal "motion-report"
+@application.route("/motion-report", methods=["POST"])
+def motion_report():
+    data = request.json
+    emit("motion-report", data)
+    return "Motion report sent"
 
 #where the self.engagement_counter is suppose to send engagement score every event 
 @application.route("/engagement",methods =["POST"])

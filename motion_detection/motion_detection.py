@@ -13,7 +13,7 @@ def get_current_content():
     return req.json()
 
 def post_engagement_report(report):
-    req = requests.post("http://localhost:8000/engagement-reports", json=report)
+    req = requests.post("http://localhost:8000/motion-report", json=report)
     return req
 
 

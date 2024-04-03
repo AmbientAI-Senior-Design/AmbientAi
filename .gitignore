@@ -4,3 +4,5 @@
 /.venv
 /.idea
 /.vscode
+/backend/__pycache__
+/backend/src/__pycache__
