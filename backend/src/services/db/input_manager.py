@@ -17,7 +17,7 @@ class InputManager(DatabaseManager):
         return data
 
 
-    def create_input(self, model: InputModel):
+    def create_input(self, model):
         query = """
         INSERT INTO input (date, duration, numberOfPeople, numberOfEngagedPeople, score, slideId, image_data)
         VALUES (%s, %s, %s, %s, %s, %s, %s)

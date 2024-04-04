@@ -26,3 +26,5 @@ class BackendModel(BaseModel):
     score: int
 
 
+class InputModel(BaseModel):
+    ...

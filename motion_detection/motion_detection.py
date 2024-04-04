@@ -4,13 +4,11 @@ import numpy as np
 import requests
 import math
 import threading
+import socketio
+
 
 engagement_counter = 0
 
-# Used to get currently displayed content information (id, duration, etc..)
-def get_current_content():
-    req = requests.get("http://localhost:8000/content")
-    return req.json()
 
 def post_engagement_report(report):
     req = requests.post("http://localhost:8000/motion-report", json=report)
@@ -38,7 +36,7 @@ def calculate_distance_in_cm(perimeter):
 
 
 class MotionAndFacialDetection:
-    def __init__(self):
+    def __init__(self, sio):
         self.engagement_counter = 0
         self.activity = False
         self.webcam_capture = cv2.VideoCapture(0)
@@ -58,6 +56,7 @@ class MotionAndFacialDetection:
         self.user_engaged_reported = False
         self.flag = False
         self.flag_prev = None
+        self.sio = sio
 
     @staticmethod
     def rectangle_to_tuple(rectangle):
@@ -105,14 +104,14 @@ class MotionAndFacialDetection:
                 people_boxes.append((x, y, x + w, y + h))
 
         return people_boxes
-    def send_engagement_score(self):
+    def send_engagement_score(self, sio):
         if self.engagement_counter > 0:
             data = {"score":self.engagement_counter}
             try:
                 response = requests.post("http://localhost:8000/engagement", json=data)
-                not_engaged_response = requests.post("http://localhost:8000/events/not_engaged", json=data)
+                sio.emit("engagement-change", {"data": "not_engaged"})
+
                 print(f"Engagement score sent: {data['score']} - Server response: {response.status_code}")
-                print(f"Activity state changed to not engaged Response: {not_engaged_response.status_code}")
 
                 #self.engagement_counter = 0 #potentially adding this
             except Exception as e:
@@ -124,18 +123,17 @@ class MotionAndFacialDetection:
                 self.flag = False
             else:
                 event_type = "leave"
-            response = requests.post(f"http://localhost:8000/events/{event_type}")
-            print(f"Activity state changed to {self.activity}. Response: {response.status_code}")
+            self.sio.emit("engagement-change", {"data": event_type})
         if self.flag != self.flag_prev:
             event_type = "user_engaged"
-            response = requests.post(f"http://localhost:8000/events/{event_type}")
-            print(f"Activity state changed to {self.activity}. Response: {response.status_code}")
+            self.sio.emit("engagement-change", {"data": event_type})
+
 
             # Update the previous activity state after sending the POST request
         self.prev_activity = self.activity
         self.flag_prev = self.flag
 
-    def run(self):
+    def run(self, sio):
         detection_frequency = 2
         frame_count = 0
 
@@ -202,7 +200,7 @@ class MotionAndFacialDetection:
                 self.flag = False
                 self.activity_check()
                 self.event = False
-                self.send_engagement_score()
+                self.send_engagement_score(sio)
                 self.engagement_counter = 0
             time_out = cv2.getTickCount()
             time_diff = time_out - time_in
@@ -229,8 +227,11 @@ class MotionAndFacialDetection:
 
 
 if __name__ == "__main__":
-    motion_and_facial_detection = MotionAndFacialDetection()
+    with socketio.SimpleClient() as sio:
+        sio.connect('http://localhost:8000')
+        print("Connected to server with sid: ", sio.sid)
+        motion_and_facial_detection = MotionAndFacialDetection(sio)
 
-    #timed_send_score(motion_and_facial_detection)
+        #timed_send_score(motion_and_facial_detection)
 
-    motion_and_facial_detection.run()
+        motion_and_facial_detection.run(sio)

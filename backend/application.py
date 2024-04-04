@@ -4,7 +4,6 @@ from flask import Flask, jsonify, render_template, request, redirect, url_for
 from src.config import (PORT, STATIC_FOLDER_PATH, application)
 
 # Instead of from src.routes import leaderboard, engagement
-from src.routes import leaderboard
 
 # Instead of from src.services.flask_socket import socketio, emit_carrousel_refresh
 from src.services.flask_socket import socketio, emit_carrousel_refresh
@@ -17,7 +16,7 @@ import random
 
 
 # Instead of from src.models import InputModel
-from src.models import InputModel
+from src.models.input_model import InputModel
 
 
 @application.route('/')
@@ -100,6 +99,14 @@ def send_activity(event):
     socketio.emit('message', {'data' : event})
     return "Message sent"
 
+
+@socketio.on("engagement-change")
+def handle_engagement_change(data):
+    event_type = data["data"]
+    print(f"Engagement change: {event_type}")
+    socketio.emit("message", data)
+
+
 @application.route("/current_score", methods=["GET"])
 def current_score():
     with InputManager() as db:
@@ -116,7 +123,6 @@ if __name__ == '__main__':
     # connect to database here
 
     # register routes
-    application.register_blueprint(leaderboard, url_prefix='/leaderboards')
     # Run the Flask application with Socket.IO support
     socketio.run(application, port=8000, debug=True, allow_unsafe_werkzeug=True)
 
