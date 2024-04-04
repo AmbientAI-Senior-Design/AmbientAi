@@ -103,9 +103,10 @@
 
             // Validate inputs
             if (clientName && mainImage.length > 0 && relatedImage1.length > 0 && relatedImage2.length > 0 && relatedImage3.length > 0 && date && mainImageDescription && relatedImage1Description && relatedImage2Description && relatedImage3Description) {
-                console.log('Valid data, form should be submitted here.');
-                // Implement the form submission logic here. This could involve AJAX, for example.
-                alert('Form appears valid. Implement submission logic here.');
+                console.log('Valid data, form should be submitted.');
+
+                // Submit the form programmatically since validation passed
+                document.getElementById('uploadForm').submit();
             } else {
                 alert('Please ensure all fields are filled in correctly and all images are selected.');
             }
@@ -121,7 +122,7 @@
         <a href="/leaderboard">Leaderboard</a>
     </nav>
     <div class="container">
-        <form onsubmit="validateAndSubmit(event)" enctype="multipart/form-data">
+        <form id="uploadForm" action="/new-content" method="POST" enctype="multipart/form-data">
             <label for="date">Today's Date:</label>
             <input type="date" id="date" name="date" required>
 
@@ -132,21 +133,6 @@
             <input type="file" id="main_image" name="main_image" accept="image/*" required>
             <label for="main_image_description">Main Image Description:</label>
             <textarea id="main_image_description" name="main_image_description" required></textarea>
-
-            <label for="related_image1">Related Image 1:</label>
-            <input type="file" id="related_image1" name="related_image1" accept="image/*" required>
-            <label for="related_image1_description">Related Image 1 Description:</label>
-            <textarea id="related_image1_description" name="related_image1_description" required></textarea>
-
-            <label for="related_image2">Related Image 2:</label>
-            <input type="file" id="related_image2" name="related_image2" accept="image/*" required>
-            <label for="related_image2_description">Related Image 2 Description:</label>
-            <textarea id="related_image2_description" name="related_image2_description" required></textarea>
-
-            <label for="related_image3">Related Image 3:</label>
-            <input type="file" id="related_image3" name="related_image3" accept="image/*" required>
-            <label for="related_image3_description">Related Image 3 Description:</label>
-            <textarea id="related_image3_description" name="related_image3_description" required></textarea>
 
             <input type="submit" value="Upload Images">
         </form>

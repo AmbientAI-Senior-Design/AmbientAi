@@ -1,14 +1,12 @@
 from src.services.db.manager import DatabaseManager
-from src.models.input_model import PostModel, EngagementReportModel, SlideModel, BackendModel
-
-# a get request
-
+from src.models.input_model import InputModel, PostModel, EngagementReportModel, SlideModel, BackendModel
 
 class InputManager(DatabaseManager):
 
 
     def __init__(self):
         super().__init__("ClientInput")
+        self.cursor = self._conn.cursor()
     
     def leaderboard_data(self): # gathers data for leaderboard.html
         query = "SELECT client_name, score FROM backend ORDER BY score DESC"

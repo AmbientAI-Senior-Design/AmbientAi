@@ -1,4 +1,5 @@
-
+from src.services.db.input_manager import InputManager
+from src.models.input_model import InputModel
 
 from flask import Flask, jsonify, render_template, request, redirect, url_for
 from src.config import (PORT, STATIC_FOLDER_PATH, application)
@@ -23,6 +24,8 @@ import random
 
 # Instead of from src.models import InputModel
 from src.models import InputModel
+
+application = Flask(__name__, template_folder='src/templates', static_url_path='', static_folder='src/static')
 
 
 @application.route('/billboard')
@@ -56,32 +59,36 @@ def generate_random_id():
 @application.route('/new-content', methods=["GET", "POST"])
 def render_new_content():
     if request.method == 'POST':
-        # Get form data
-        image_name = request.form.get('image_name')
         client_name = request.form.get('client_name')
-        image_file = request.files['image_`file']
-        # Ensure the 'static' folder exists, create it if not
-        if not os.path.exists(STATIC_FOLDER_PATH):
-            os.makedirs(STATIC_FOLDER_PATH)
+        image_file = request.files.get('main_image')
+        print("Form submitted")
+        print(request.form)
+        print(request.files)
 
-        # Save the uploaded image file to the 'static' folder
-        image_path = os.path.join(STATIC_FOLDER_PATH, image_file.filename)
-        image_file.save(image_path)
-        model = InputModel(
-            input_id = generate_random_id(),
-            image_score=0,
-            input_name=image_name,
-            input_image_path=request.url_root + "static/" + image_file.filename,
-            client_name=client_name
-        )
-        with InputManager() as db:
-            db.create_input(model)
 
-        # Perform any other processing with the form data as needed
+        if image_file:
+            static_folder = application.static_folder
+            if not os.path.exists(static_folder):
+                os.makedirs(static_folder)
+            
+            image_path = os.path.join(static_folder, image_file.filename)
+            image_file.save(image_path)
 
-        return redirect(url_for('success'))
+            # Assuming InputModel and InputManager are correctly set up for this operation
+            model = InputModel(
+                input_id=generate_random_id(),
+                image_score=0, 
+                input_name=image_file.filename,
+                input_image_path=image_path,
+                client_name=client_name
+            )
+            with InputManager() as db:
+                db.create_input(model)
+
+            return redirect(url_for('success'))
 
     return render_template('new-content.html')
+
 
 
 # Route for a success page

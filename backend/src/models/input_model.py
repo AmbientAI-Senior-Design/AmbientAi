@@ -1,6 +1,15 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional, Text
 from datetime import date
+
+class InputModel(BaseModel):
+    date: Optional[str] = Field(None)
+    duration: Optional[int] = Field(None)
+    numberOfPeople: Optional[int] = Field(None)
+    numberOfEngagedPeople: Optional[int] = Field(None)
+    score: Optional[int] = Field(None)
+    slideId: Optional[int] = Field(None)
+    image_data: Optional[str] = Field(None)
 
 class PostModel(BaseModel):
     id: Optional[int] = None  
