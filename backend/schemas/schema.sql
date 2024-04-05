@@ -14,6 +14,7 @@ CREATE TABLE EngagementReport (
     numberOfEngagedPeople INT,
     score FLOAT,
     fk_post_id INT,
+    slide_index INT
     FOREIGN KEY (fk_post_id) REFERENCES Post(id)
 );
 

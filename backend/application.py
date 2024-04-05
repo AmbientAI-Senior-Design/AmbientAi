@@ -4,19 +4,42 @@ from flask import Flask, jsonify, render_template, request, redirect, url_for
 from src.config import (PORT, STATIC_FOLDER_PATH, application)
 
 # Instead of from src.routes import leaderboard, engagement
+from src.routes import leaderboard
 
 # Instead of from src.services.flask_socket import socketio, emit_carrousel_refresh
 from src.services.flask_socket import socketio, emit_carrousel_refresh
+
+# Instead of from src.services.db.input_manager import InputManager
 from src.services.db.input_manager import InputManager
+
+# Instead of from src.controllers.leaderboard_controller import get_leaderboard
+#from src.controllers.leaderboard_controller import get_leaderboard
 
 from flask_socketio import SocketIO, emit
 
 import os
 import random
+from datetime import datetime
 
 
 # Instead of from src.models import InputModel
-from src.models.input_model import InputModel
+from src.models import InputModel
+
+
+
+
+@application.route('/billboard')
+def render_billboard():
+    with InputManager() as db:
+        initial_src = db.get_highest_ranked_input_src()
+        return render_template('billboard.html', initial_src=initial_src)
+
+
+@application.route('/dashboard')
+def render_leaderboard():
+    # Pass the list of LeaderBoard objects to the template
+    leaderboard_list = get_leaderboard()
+    return render_template('dashboard.html', leaderboard_list=leaderboard_list)
 
 
 @application.route('/')
@@ -71,12 +94,6 @@ def success():
 
 DATABASE = "ClientInput"
 
-# emits the payload inot the socket signal "motion-report"
-@application.route("/motion-report", methods=["POST"])
-def motion_report():
-    data = request.json
-    emit("motion-report", data)
-    return "Motion report sent"
 
 #where the self.engagement_counter is suppose to send engagement score every event 
 @application.route("/engagement",methods =["POST"])
@@ -99,19 +116,17 @@ def send_activity(event):
     socketio.emit('message', {'data' : event})
     return "Message sent"
 
-
-@socketio.on("engagement-change")
-def handle_engagement_change(data):
-    event_type = data["data"]
-    print(f"Engagement change: {event_type}")
-    socketio.emit("message", data)
-
-
-@application.route("/current_score", methods=["GET"])
-def current_score():
+@socketio.on("full-report")
+def recv_data(data):
     with InputManager() as db:
-        score = db.get_current_score()
-    return jsonify({"Current eng score": score})
+        db.populate_db(data)
+
+@application.route("/motion_report", methods = ["POST"])
+def send_mreport():
+    motion_rep = request.json
+    motion_rep["date"] = datetime.now().date().isoformat()
+    socketio.emit('motion_report', motion_rep)
+    return {"Status": "Report sent"}
 
 @application.route('/leaderboard') # puts data into leaderboard.html
 def leaderboards():
@@ -119,10 +134,12 @@ def leaderboards():
         data = db.leaderboard_data()
     return render_template('leaderboard.html', data = data)
 
+
 if __name__ == '__main__':
     # connect to database here
 
     # register routes
+    application.register_blueprint(leaderboard, url_prefix='/leaderboards')
     # Run the Flask application with Socket.IO support
     socketio.run(application, port=8000, debug=True, allow_unsafe_werkzeug=True)
 
