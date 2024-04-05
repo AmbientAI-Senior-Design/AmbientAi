@@ -13,6 +13,7 @@ class EngagementReportModel(BaseModel):
     numberOfEngagedPeople: int
     score: float
     fk_post_id: int
+    slide_index: int
 
 class SlideModel(BaseModel):
     id: Optional[int] = None  
@@ -26,5 +27,3 @@ class BackendModel(BaseModel):
     score: int
 
 
-class InputModel(BaseModel):
-    ...
