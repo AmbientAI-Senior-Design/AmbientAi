@@ -6,7 +6,6 @@ from src.models.input_model import PostModel, EngagementReportModel, SlideModel,
 
 class InputManager(DatabaseManager):
 
-
     def __init__(self):
         super().__init__("ClientInput")
 
@@ -18,17 +17,24 @@ class InputManager(DatabaseManager):
         self.cursor.execute("SELECT LAST_INSERT_ID();") # get last id
         post_id = self.cursor.fetchone()[0]
         return post_id
+    
+
+    def add_new_row_to_Post(self):
+        self.cursor.execute("INSERT INTO Post () VALUES ();")
+        self.connection.commit()
+
 
     def populate_db(self, data):
         model = EngagementReportModel(**data)
         pid = data['pid']
-        if model.fk_post_id is None:
-            post_id = self.get_id()
-            query = " INSERT INTO EngagementReport (id, date, duration, numberOfPeople, numberOfEngagedPeople, score, fk_post_id, slide_index) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
-            params = (model.id, model.date, model.duration, model.numberOfPeople, model.numberOfEngagedPeople, model.score, model.fk_post_id, model.slide_index)
-            self.cursor.execute(query,params)
-            self.connection.commit()
+        #if model.fk_post_id is None:
+        post_id = self.get_id()
+        query = " INSERT INTO EngagementReport (id, date, duration, numberOfPeople, numberOfEngagedPeople, score, fk_post_id, slide_index) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
+        params = (model.id, model.date, model.duration, model.numberOfPeople, model.numberOfEngagedPeople, model.score, model.fk_post_id, model.slide_index)
+        self.cursor.execute(query,params)
+        self.connection.commit()
 
+#    def leaderboard_db(self):
 
 
     
