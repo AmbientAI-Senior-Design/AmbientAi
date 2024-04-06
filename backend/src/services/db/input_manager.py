@@ -13,7 +13,7 @@ class InputManager(DatabaseManager):
     def get_id(self):
         model : PostModel
         self.cursor.execute("INSERT INTO Post VALUES ();")# make new row
-        self.connection.commit()
+        self._conn.commit()
         self.cursor.execute("SELECT LAST_INSERT_ID();") # get last id
         post_id = self.cursor.fetchone()[0]
         return post_id
@@ -21,8 +21,14 @@ class InputManager(DatabaseManager):
 
     def add_new_row_to_Post(self):
         self.cursor.execute("INSERT INTO Post () VALUES ();")
-        self.connection.commit()
+        self._conn.commit()
+        return self.get_id()
 
+    def add_slide(self, slide: SlideModel):
+        query = "INSERT INTO Slide (path, description, fk_post_id, slide_index) VALUES (%s, %s, %s, %s)"
+        values = (slide.path, slide.description, slide.fk_post_id, slide.slide_index)
+        self.cursor.execute(query, values)
+        self._conn.commit()
 
     def populate_db(self, data):
         model = EngagementReportModel(**data)
@@ -32,7 +38,12 @@ class InputManager(DatabaseManager):
         query = " INSERT INTO EngagementReport (id, date, duration, numberOfPeople, numberOfEngagedPeople, score, fk_post_id, slide_index) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
         params = (model.id, model.date, model.duration, model.numberOfPeople, model.numberOfEngagedPeople, model.score, model.fk_post_id, model.slide_index)
         self.cursor.execute(query,params)
-        self.connection.commit()
+        self._conn.commit()
+
+    def get_all_slides(self):
+        self.cursor.execute("SELECT path, description FROM Slide")
+        slides = self.cursor.fetchall()
+        return slides
 
 #    def leaderboard_db(self):
 

@@ -121,7 +121,7 @@
         <a href="/leaderboard">Leaderboard</a>
     </nav>
     <div class="container">
-        <form onsubmit="validateAndSubmit(event)" enctype="multipart/form-data">
+        <form id="uploadForm" action="/upload-slides" method="post" enctype="multipart/form-data" >
             <label for="date">Today's Date:</label>
             <input type="date" id="date" name="date" required>
 

@@ -2,6 +2,7 @@
 
 from flask import Flask, jsonify, render_template, request, redirect, url_for
 from src.config import (PORT, STATIC_FOLDER_PATH, application)
+from werkzeug.utils import secure_filename
 
 # Instead of from src.routes import leaderboard, engagement
 from src.routes import leaderboard
@@ -23,9 +24,10 @@ from datetime import datetime
 
 
 # Instead of from src.models import InputModel
-from src.models import InputModel
+from src.models.input_model import PostModel, EngagementReportModel, SlideModel, BackendModel
 
-
+application = Flask(__name__)
+application.config['UPLOAD_FOLDER'] = os.path.join('src', 'static', 'uploads')
 
 
 @application.route('/billboard')
@@ -56,36 +58,55 @@ def handle_refresh():
 def generate_random_id():
     return random.randint(1,1000000)
 
+# Update STATIC_FOLDER_PATH to your actual static folder path
+STATIC_FOLDER_PATH = os.path.join(os.getcwd(), 'src/static')
+
 @application.route('/new-content', methods=["GET", "POST"])
 def render_new_content():
     if request.method == 'POST':
         # Get form data
-        image_name = request.form.get('image_name')
         client_name = request.form.get('client_name')
-        image_file = request.files['image_`file']
-        # Ensure the 'static' folder exists, create it if not
-        if not os.path.exists(STATIC_FOLDER_PATH):
-            os.makedirs(STATIC_FOLDER_PATH)
+        date = request.form.get('date')  # Assuming you might need the date
 
-        # Save the uploaded image file to the 'static' folder
-        image_path = os.path.join(STATIC_FOLDER_PATH, image_file.filename)
-        image_file.save(image_path)
-        model = InputModel(
-            input_id = generate_random_id(),
-            image_score=0,
-            input_name=image_name,
-            input_image_path=request.url_root + "static/" + image_file.filename,
-            client_name=client_name
-        )
+        # Process images and their descriptions
+        images = {}
+        descriptions = {}
+        for i in range(4):
+            img_key = f"main_image" if i == 0 else f"related_image{i}"
+            desc_key = f"main_image_description" if i == 0 else f"related_image{i}_description"
+            image_file = request.files[img_key]
+            description = request.form[desc_key]
+
+            # Ensure the 'static' folder exists, create it if not
+            if not os.path.exists(STATIC_FOLDER_PATH):
+                os.makedirs(STATIC_FOLDER_PATH)
+
+            # Save the uploaded image file to the 'static' folder
+            image_path = os.path.join(STATIC_FOLDER_PATH, image_file.filename)
+            image_file.save(image_path)
+            
+            images[img_key] = image_path
+            descriptions[desc_key] = description
+
         with InputManager() as db:
-            db.create_input(model)
+            for i, (img_key, desc_key) in enumerate(zip(images, descriptions)):
+                model = InputModel(
+                    input_id=generate_random_id(),
+                    image_score=0,  # Assuming a default score of 0
+                    input_name=images[img_key],  # Or you could use image_file.filename
+                    input_image_path=images[img_key],
+                    description=descriptions[desc_key],  # The description for each image
+                    client_name=client_name,
+                    date=date,  # Assuming your InputModel can take a date
+                    # You can add more fields if your InputModel requires them
+                )
+                db.create_input(model)
 
         # Perform any other processing with the form data as needed
 
         return redirect(url_for('success'))
 
     return render_template('new-content.html')
-
 
 # Route for a success page
 @application.route('/success')
@@ -143,5 +164,45 @@ if __name__ == '__main__':
     # Run the Flask application with Socket.IO support
     socketio.run(application, port=8000, debug=True, allow_unsafe_werkzeug=True)
 
-    
 
+@application.route('/upload-slides', methods=['POST'])
+def upload_slides():
+    client_name = request.form['client_name']
+    date = request.form['date']
+    descriptions = {
+        'main_image': request.form['main_image_description'],
+        'related_image1': request.form['related_image1_description'],
+        'related_image2': request.form['related_image2_description'],
+        'related_image3': request.form['related_image3_description']
+    }
+    # Ensure the 'static/uploads' directory exists
+    if not os.path.exists(application.config['UPLOAD_FOLDER']):
+        os.makedirs(application.config['UPLOAD_FOLDER'])
+
+    with InputManager() as db:
+        # Store the ID of the new post
+        post_id = db.add_new_row_to_Post()
+
+        # Process and save each uploaded image and create a Slide entry
+        for key in descriptions.keys():
+            image_file = request.files[key]
+            filename = secure_filename(image_file.filename)
+            file_path = os.path.join(application.config['UPLOAD_FOLDER'], filename)
+            image_file.save(file_path)
+
+            # Here, create a SlideModel instance for each uploaded file
+            slide = SlideModel(
+                path=file_path,
+                description=descriptions[key],
+                fk_post_id=post_id,
+                slide_index=0  # You should manage the slide_index properly if needed
+            )
+            db.add_slide(slide)  # Add the new slide to the database
+
+    return redirect(url_for('success'))
+
+@application.route('/slides', methods=['GET'])
+def get_slides():
+    with InputManager() as db:
+        slides = db.get_all_slides()
+    return jsonify(slides)
