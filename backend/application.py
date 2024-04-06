@@ -16,17 +16,17 @@ application = Flask(__name__, template_folder='src/templates')
 application.config['UPLOAD_FOLDER'] = os.path.join('src', 'static', 'uploads')
 
 
-@application.route('/billboard')
-def render_billboard():
-    with InputManager() as db:
-        initial_src = db.get_highest_ranked_input_src()
-        return render_template('billboard.html', initial_src=initial_src)
+# @application.route('/billboard')
+# def render_billboard():
+#     with InputManager() as db:
+#         initial_src = db.get_highest_ranked_input_src()
+#         return render_template('billboard.html', initial_src=initial_src)
 
 
-@application.route('/dashboard')
-def render_leaderboard():
-    leaderboard_list = get_leaderboard()
-    return render_template('dashboard.html', leaderboard_list=leaderboard_list)
+# @application.route('/dashboard')
+# def render_leaderboard():
+#     leaderboard_list = get_leaderboard()
+#     return render_template('dashboard.html', leaderboard_list=leaderboard_list)
 
 
 @application.route('/')
