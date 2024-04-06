@@ -3,27 +3,13 @@
 from flask import Flask, jsonify, render_template, request, redirect, url_for
 from src.config import (PORT, STATIC_FOLDER_PATH, application)
 from werkzeug.utils import secure_filename
-
-# Instead of from src.routes import leaderboard, engagement
 from src.routes import leaderboard
-
-# Instead of from src.services.flask_socket import socketio, emit_carrousel_refresh
 from src.services.flask_socket import socketio, emit_carrousel_refresh
-
-# Instead of from src.services.db.input_manager import InputManager
 from src.services.db.input_manager import InputManager
-
-# Instead of from src.controllers.leaderboard_controller import get_leaderboard
-#from src.controllers.leaderboard_controller import get_leaderboard
-
 from flask_socketio import SocketIO, emit
-
 import os
 import random
 from datetime import datetime
-
-
-# Instead of from src.models import InputModel
 from src.models.input_model import PostModel, EngagementReportModel, SlideModel, BackendModel
 
 application = Flask(__name__)
@@ -39,7 +25,6 @@ def render_billboard():
 
 @application.route('/dashboard')
 def render_leaderboard():
-    # Pass the list of LeaderBoard objects to the template
     leaderboard_list = get_leaderboard()
     return render_template('dashboard.html', leaderboard_list=leaderboard_list)
 
@@ -58,17 +43,13 @@ def handle_refresh():
 def generate_random_id():
     return random.randint(1,1000000)
 
-# Update STATIC_FOLDER_PATH to your actual static folder path
 STATIC_FOLDER_PATH = os.path.join(os.getcwd(), 'src/static')
 
 @application.route('/new-content', methods=["GET", "POST"])
 def render_new_content():
     if request.method == 'POST':
-        # Get form data
         client_name = request.form.get('client_name')
-        date = request.form.get('date')  # Assuming you might need the date
-
-        # Process images and their descriptions
+        date = request.form.get('date')
         images = {}
         descriptions = {}
         for i in range(4):
@@ -76,12 +57,9 @@ def render_new_content():
             desc_key = f"main_image_description" if i == 0 else f"related_image{i}_description"
             image_file = request.files[img_key]
             description = request.form[desc_key]
-
-            # Ensure the 'static' folder exists, create it if not
             if not os.path.exists(STATIC_FOLDER_PATH):
                 os.makedirs(STATIC_FOLDER_PATH)
 
-            # Save the uploaded image file to the 'static' folder
             image_path = os.path.join(STATIC_FOLDER_PATH, image_file.filename)
             image_file.save(image_path)
             
@@ -92,37 +70,30 @@ def render_new_content():
             for i, (img_key, desc_key) in enumerate(zip(images, descriptions)):
                 model = InputModel(
                     input_id=generate_random_id(),
-                    image_score=0,  # Assuming a default score of 0
-                    input_name=images[img_key],  # Or you could use image_file.filename
+                    image_score=0,
+                    input_name=images[img_key],
                     input_image_path=images[img_key],
-                    description=descriptions[desc_key],  # The description for each image
+                    description=descriptions[desc_key],
                     client_name=client_name,
-                    date=date,  # Assuming your InputModel can take a date
-                    # You can add more fields if your InputModel requires them
+                    date=date,
                 )
                 db.create_input(model)
-
-        # Perform any other processing with the form data as needed
 
         return redirect(url_for('success'))
 
     return render_template('new-content.html')
 
-# Route for a success page
 @application.route('/success')
 def success():
     return render_template('success.html')
 
 DATABASE = "ClientInput"
-
-
-#where the self.engagement_counter is suppose to send engagement score every event 
 @application.route("/engagement",methods =["POST"])
 def update_engagement():
     scorerecv = request.json
     score = scorerecv.get("score", 0)
     with InputManager() as db:
-        db.create_engagement(0, score) #  modify here, 0 needs to be input_id from client.js
+        db.create_engagement(0, score)
     if score > 0:
         socketio.emit('update_data', ["http://127.0.0.1:8000/static/menu.PNG"])
     return {
@@ -130,7 +101,6 @@ def update_engagement():
         "Message": "Score updated"
     }
 
-#socketio = SocketIO(application, cors_allowed_origins="*")
 @application.route("/events/<event>", methods = ["POST"])
 def send_activity(event):
     
@@ -149,7 +119,7 @@ def send_mreport():
     socketio.emit('motion_report', motion_rep)
     return {"Status": "Report sent"}
 
-@application.route('/leaderboard') # puts data into leaderboard.html
+@application.route('/leaderboard')
 def leaderboards():
     with InputManager() as db:
         data = db.leaderboard_data()
@@ -157,11 +127,7 @@ def leaderboards():
 
 
 if __name__ == '__main__':
-    # connect to database here
-
-    # register routes
     application.register_blueprint(leaderboard, url_prefix='/leaderboards')
-    # Run the Flask application with Socket.IO support
     socketio.run(application, port=8000, debug=True, allow_unsafe_werkzeug=True)
 
 
@@ -175,29 +141,25 @@ def upload_slides():
         'related_image2': request.form['related_image2_description'],
         'related_image3': request.form['related_image3_description']
     }
-    # Ensure the 'static/uploads' directory exists
     if not os.path.exists(application.config['UPLOAD_FOLDER']):
         os.makedirs(application.config['UPLOAD_FOLDER'])
 
     with InputManager() as db:
-        # Store the ID of the new post
         post_id = db.add_new_row_to_Post()
 
-        # Process and save each uploaded image and create a Slide entry
         for key in descriptions.keys():
             image_file = request.files[key]
             filename = secure_filename(image_file.filename)
             file_path = os.path.join(application.config['UPLOAD_FOLDER'], filename)
             image_file.save(file_path)
 
-            # Here, create a SlideModel instance for each uploaded file
             slide = SlideModel(
                 path=file_path,
                 description=descriptions[key],
                 fk_post_id=post_id,
-                slide_index=0  # You should manage the slide_index properly if needed
+                slide_index=0 
             )
-            db.add_slide(slide)  # Add the new slide to the database
+            db.add_slide(slide)
 
     return redirect(url_for('success'))
 
