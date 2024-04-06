@@ -12,7 +12,7 @@ import random
 from datetime import datetime
 from src.models.input_model import PostModel, EngagementReportModel, SlideModel, BackendModel
 
-application = Flask(__name__)
+application = Flask(__name__, template_folder='src/templates')
 application.config['UPLOAD_FOLDER'] = os.path.join('src', 'static', 'uploads')
 
 
