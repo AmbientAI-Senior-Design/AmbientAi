@@ -18,6 +18,16 @@ class InputManager(DatabaseManager):
         self.cursor.execute("INSERT INTO Post () VALUES ();")
         self._conn.commit()
         return self.get_id()
+    
+    def add_fk_id(self,fk_id):
+        query = "INSERT INTO EngagementReport SET fk_post_id = %s"
+        query2 = "INSERT INTO Slide SET fk_post_id = %s"
+        self.cursor.execute(query, (fk_id))
+        self._conn.commit()
+        self.cursor.execute(query2, (fk_id))
+        self._conn.commit()
+
+
 
     def add_slide(self, slide: SlideModel):
         query = "INSERT INTO Slide (path, description, fk_post_id, slide_index) VALUES (%s, %s, %s, %s)"

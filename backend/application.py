@@ -78,6 +78,9 @@ def render_new_content():
                     date=date,
                 )
                 db.create_input(model)
+        with InputManager() as db:
+            post_id = db.add_new_row_to_Post()
+            db.add_fk_id(post_id)
 
         return redirect(url_for('success'))
 
