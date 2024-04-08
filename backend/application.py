@@ -12,10 +12,6 @@ import random
 from datetime import datetime
 from src.models.input_model import PostModel, EngagementReportModel, SlideModel, BackendModel
 
-application = Flask(__name__, template_folder='src/templates')
-application.config['UPLOAD_FOLDER'] = os.path.join('src', 'static', 'uploads')
-
-
 # @application.route('/billboard')
 # def render_billboard():
 #     with InputManager() as db:
@@ -43,7 +39,6 @@ def handle_refresh():
 def generate_random_id():
     return random.randint(1,1000000)
 
-STATIC_FOLDER_PATH = os.path.join(os.getcwd(), 'src/static')
 
 @application.route('/new-content', methods=["GET", "POST"])
 def render_new_content():
@@ -68,14 +63,15 @@ def render_new_content():
 
         with InputManager() as db:
             for i, (img_key, desc_key) in enumerate(zip(images, descriptions)):
-                model = InputModel(
-                    input_id=generate_random_id(),
-                    image_score=0,
+                model = EngagementReportModel(
+                    id=generate_random_id(),
+                    score=0,
                     input_name=images[img_key],
                     input_image_path=images[img_key],
                     description=descriptions[desc_key],
                     client_name=client_name,
                     date=date,
+                    slide_index=i
                 )
                 db.create_input(model)
         with InputManager() as db:
@@ -110,10 +106,12 @@ def send_activity(event):
     socketio.emit('message', {'data' : event})
     return "Message sent"
 
+
 @socketio.on("full-report")
 def recv_data(data):
     with InputManager() as db:
         db.populate_db(data)
+
 
 @application.route("/motion_report", methods = ["POST"])
 def send_mreport():
@@ -122,17 +120,12 @@ def send_mreport():
     socketio.emit('motion_report', motion_rep)
     return {"Status": "Report sent"}
 
+
 @application.route('/leaderboard')
 def leaderboards():
     with InputManager() as db:
         data = db.leaderboard_data()
     return render_template('leaderboard.html', data = data)
-
-
-if __name__ == '__main__':
-    application.register_blueprint(leaderboard, url_prefix='/leaderboards')
-    socketio.run(application, port=8000, debug=True, allow_unsafe_werkzeug=True)
-
 
 @application.route('/upload-slides', methods=['POST'])
 def upload_slides():
@@ -149,7 +142,7 @@ def upload_slides():
 
     with InputManager() as db:
         post_id = db.add_new_row_to_Post()
-
+        index = 0
         for key in descriptions.keys():
             image_file = request.files[key]
             filename = secure_filename(image_file.filename)
@@ -160,9 +153,10 @@ def upload_slides():
                 path=file_path,
                 description=descriptions[key],
                 fk_post_id=post_id,
-                slide_index=0 
+                slide_index=index
             )
             db.add_slide(slide)
+            index += 1
 
     return redirect(url_for('success'))
 
@@ -171,3 +165,8 @@ def get_slides():
     with InputManager() as db:
         slides = db.get_all_slides()
     return jsonify(slides)
+
+
+if __name__ == '__main__':
+    socketio.run(application, port=8000, debug=True, allow_unsafe_werkzeug=True)
+

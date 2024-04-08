@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -90,16 +90,16 @@
             event.preventDefault(); // Prevent default form submission behavior
 
             // Fetch form values
-            var clientName = document.getElementById('client_name').value.trim();
-            var mainImage = document.getElementById('main_image').files;
-            var relatedImage1 = document.getElementById('related_image1').files;
-            var relatedImage2 = document.getElementById('related_image2').files;
-            var relatedImage3 = document.getElementById('related_image3').files;
-            var date = document.getElementById('date').value;
-            var mainImageDescription = document.getElementById('main_image_description').value.trim();
-            var relatedImage1Description = document.getElementById('related_image1_description').value.trim();
-            var relatedImage2Description = document.getElementById('related_image2_description').value.trim();
-            var relatedImage3Description = document.getElementById('related_image3_description').value.trim();
+            const clientName = document.getElementById('client_name').value.trim();
+            const mainImage = document.getElementById('main_image').files;
+            const relatedImage1 = document.getElementById('related_image1').files;
+            const relatedImage2 = document.getElementById('related_image2').files;
+            const relatedImage3 = document.getElementById('related_image3').files;
+            const date = document.getElementById('date').value;
+            const mainImageDescription = document.getElementById('main_image_description').value.trim();
+            const relatedImage1Description = document.getElementById('related_image1_description').value.trim();
+            const relatedImage2Description = document.getElementById('related_image2_description').value.trim();
+            const relatedImage3Description = document.getElementById('related_image3_description').value.trim();
 
             // Validate inputs
             if (clientName && mainImage.length > 0 && relatedImage1.length > 0 && relatedImage2.length > 0 && relatedImage3.length > 0 && date && mainImageDescription && relatedImage1Description && relatedImage2Description && relatedImage3Description) {
@@ -110,6 +110,8 @@
                 alert('Please ensure all fields are filled in correctly and all images are selected.');
             }
         }
+
+
     </script>
 </head>
 <body>
