@@ -28,7 +28,6 @@ class InputManager(DatabaseManager):
         self._conn.commit()
 
 
-
     def add_slide(self, slide: SlideModel):
         query = "INSERT INTO Slide (path, description, fk_post_id, slide_index) VALUES (%s, %s, %s, %s)"
         values = (slide.path, slide.description, slide.fk_post_id, slide.slide_index)
@@ -49,7 +48,10 @@ class InputManager(DatabaseManager):
         slides = self.cursor.fetchall()
         return slides
 
-#    def leaderboard_db(self):
+    def leaderboard_data(self):
+        self.cursor.execute("SELECT fk_post_id, SUM(score) AS total_score FROM EngagementReport GROUP BY fk_post_id ORDER BY total_score DESC;")
+        results = self.cursor.fetchall()
+        return [{"input_id": row[0], "image_score": row[1]} for row in results]
 
 
     
