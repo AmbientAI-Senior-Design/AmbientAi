@@ -2,44 +2,27 @@
 
 from flask import Flask, jsonify, render_template, request, redirect, url_for
 from src.config import (PORT, STATIC_FOLDER_PATH, application)
-
-# Instead of from src.routes import leaderboard, engagement
+from werkzeug.utils import secure_filename
 from src.routes import leaderboard
-
-# Instead of from src.services.flask_socket import socketio, emit_carrousel_refresh
 from src.services.flask_socket import socketio, emit_carrousel_refresh
-
-# Instead of from src.services.db.input_manager import InputManager
 from src.services.db.input_manager import InputManager
-
-# Instead of from src.controllers.leaderboard_controller import get_leaderboard
-#from src.controllers.leaderboard_controller import get_leaderboard
-
 from flask_socketio import SocketIO, emit
-
 import os
 import random
 from datetime import datetime
+from src.models.input_model import PostModel, EngagementReportModel, SlideModel, BackendModel
+
+# @application.route('/billboard')
+# def render_billboard():
+#     with InputManager() as db:
+#         initial_src = db.get_highest_ranked_input_src()
+#         return render_template('billboard.html', initial_src=initial_src)
 
 
-# Instead of from src.models import InputModel
-from src.models import InputModel
-
-
-
-
-@application.route('/billboard')
-def render_billboard():
-    with InputManager() as db:
-        initial_src = db.get_highest_ranked_input_src()
-        return render_template('billboard.html', initial_src=initial_src)
-
-
-@application.route('/dashboard')
-def render_leaderboard():
-    # Pass the list of LeaderBoard objects to the template
-    leaderboard_list = get_leaderboard()
-    return render_template('dashboard.html', leaderboard_list=leaderboard_list)
+# @application.route('/dashboard')
+# def render_leaderboard():
+#     leaderboard_list = get_leaderboard()
+#     return render_template('dashboard.html', leaderboard_list=leaderboard_list)
 
 
 @application.route('/')
@@ -56,52 +39,60 @@ def handle_refresh():
 def generate_random_id():
     return random.randint(1,1000000)
 
+
 @application.route('/new-content', methods=["GET", "POST"])
 def render_new_content():
     if request.method == 'POST':
-        # Get form data
-        image_name = request.form.get('image_name')
         client_name = request.form.get('client_name')
-        image_file = request.files['image_`file']
-        # Ensure the 'static' folder exists, create it if not
-        if not os.path.exists(STATIC_FOLDER_PATH):
-            os.makedirs(STATIC_FOLDER_PATH)
+        date = request.form.get('date')
+        images = {}
+        descriptions = {}
+        for i in range(4):
+            img_key = f"main_image" if i == 0 else f"related_image{i}"
+            desc_key = f"main_image_description" if i == 0 else f"related_image{i}_description"
+            image_file = request.files[img_key]
+            description = request.form[desc_key]
+            if not os.path.exists(STATIC_FOLDER_PATH):
+                os.makedirs(STATIC_FOLDER_PATH)
 
-        # Save the uploaded image file to the 'static' folder
-        image_path = os.path.join(STATIC_FOLDER_PATH, image_file.filename)
-        image_file.save(image_path)
-        model = InputModel(
-            input_id = generate_random_id(),
-            image_score=0,
-            input_name=image_name,
-            input_image_path=request.url_root + "static/" + image_file.filename,
-            client_name=client_name
-        )
+            image_path = os.path.join(STATIC_FOLDER_PATH, image_file.filename)
+            image_file.save(image_path)
+            
+            images[img_key] = image_path
+            descriptions[desc_key] = description
+
         with InputManager() as db:
-            db.create_input(model)
-
-        # Perform any other processing with the form data as needed
+            for i, (img_key, desc_key) in enumerate(zip(images, descriptions)):
+                model = EngagementReportModel(
+                    id=generate_random_id(),
+                    score=0,
+                    input_name=images[img_key],
+                    input_image_path=images[img_key],
+                    description=descriptions[desc_key],
+                    client_name=client_name,
+                    date=date,
+                    slide_index=i
+                )
+                db.create_input(model)
+        with InputManager() as db:
+            post_id = db.add_new_row_to_Post()
+            db.add_fk_id(post_id)
 
         return redirect(url_for('success'))
 
     return render_template('new-content.html')
 
-
-# Route for a success page
 @application.route('/success')
 def success():
     return render_template('success.html')
 
 DATABASE = "ClientInput"
-
-
-#where the self.engagement_counter is suppose to send engagement score every event 
 @application.route("/engagement",methods =["POST"])
 def update_engagement():
     scorerecv = request.json
     score = scorerecv.get("score", 0)
     with InputManager() as db:
-        db.create_engagement(0, score) #  modify here, 0 needs to be input_id from client.js
+        db.create_engagement(0, score)
     if score > 0:
         socketio.emit('update_data', ["http://127.0.0.1:8000/static/menu.PNG"])
     return {
@@ -109,17 +100,18 @@ def update_engagement():
         "Message": "Score updated"
     }
 
-#socketio = SocketIO(application, cors_allowed_origins="*")
 @application.route("/events/<event>", methods = ["POST"])
 def send_activity(event):
     
     socketio.emit('message', {'data' : event})
     return "Message sent"
 
+
 @socketio.on("full-report")
 def recv_data(data):
     with InputManager() as db:
         db.populate_db(data)
+
 
 @application.route("/motion_report", methods = ["POST"])
 def send_mreport():
@@ -128,20 +120,53 @@ def send_mreport():
     socketio.emit('motion_report', motion_rep)
     return {"Status": "Report sent"}
 
-@application.route('/leaderboard') # puts data into leaderboard.html
+
+@application.route('/leaderboard')
 def leaderboards():
     with InputManager() as db:
         data = db.leaderboard_data()
     return render_template('leaderboard.html', data = data)
 
+@application.route('/upload-slides', methods=['POST'])
+def upload_slides():
+    client_name = request.form['client_name']
+    date = request.form['date']
+    descriptions = {
+        'main_image': request.form['main_image_description'],
+        'related_image1': request.form['related_image1_description'],
+        'related_image2': request.form['related_image2_description'],
+        'related_image3': request.form['related_image3_description']
+    }
+    if not os.path.exists(application.config['UPLOAD_FOLDER']):
+        os.makedirs(application.config['UPLOAD_FOLDER'])
+
+    with InputManager() as db:
+        post_id = db.add_new_row_to_Post()
+        index = 0
+        for key in descriptions.keys():
+            image_file = request.files[key]
+            filename = secure_filename(image_file.filename)
+            file_path = os.path.join(application.config['UPLOAD_FOLDER'], filename)
+            image_file.save(file_path)
+
+            slide = SlideModel(
+                path=file_path,
+                description=descriptions[key],
+                fk_post_id=post_id,
+                slide_index=index
+            )
+            db.add_slide(slide)
+            index += 1
+
+    return redirect(url_for('success'))
+
+@application.route('/slides', methods=['GET'])
+def get_slides():
+    with InputManager() as db:
+        slides = db.get_all_slides()
+    return jsonify(slides)
+
 
 if __name__ == '__main__':
-    # connect to database here
-
-    # register routes
-    application.register_blueprint(leaderboard, url_prefix='/leaderboards')
-    # Run the Flask application with Socket.IO support
     socketio.run(application, port=8000, debug=True, allow_unsafe_werkzeug=True)
-
-    
 

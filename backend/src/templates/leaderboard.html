@@ -57,10 +57,10 @@
                 <th>Input Name</th>
                 <th>Image Score</th>
             </tr>
-            {% for input_name, image_score in data %}
+            {% for item in data %}
             <tr>
-                <td>{{ input_name }}</td>
-                <td>{{ image_score }}</td>
+                <td>{{ item.input_id }}</td>
+                <td>{{ item.image_score }}</td>
             </tr>
             {% endfor %}
         </table>
