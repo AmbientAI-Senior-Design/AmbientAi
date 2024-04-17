@@ -3,5 +3,6 @@ export type SlideContent = {
     content: string;
     slideId: number;
     index: number;
+    image?: string;
 }
  
