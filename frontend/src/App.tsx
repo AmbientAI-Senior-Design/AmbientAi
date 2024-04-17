@@ -23,7 +23,9 @@ const Slide = ({setSlideId, slide}: SlideProps) => {
         }
     }, []);
 
+    
     return (
+       // @ts-ignore
         <section postId={slide.slideId} index={slide.index}>
             slide
         </section>
