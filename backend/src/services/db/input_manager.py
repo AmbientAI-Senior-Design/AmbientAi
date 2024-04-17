@@ -43,6 +43,13 @@ class InputManager(DatabaseManager):
         self.cursor.execute(query,params)
         self._conn.commit()
 
+    def insert_into_db(self, data):
+        model = EngagementReportModel
+        query = "INSERT INTO EngagementReport (score) VALUES (%s)"
+        params = model.score
+        self.cursor.execute(query, params)
+        self._conn.commit()
+
     def get_all_slides(self):
         self.cursor.execute("SELECT path, description FROM Slide")
         slides = self.cursor.fetchall()

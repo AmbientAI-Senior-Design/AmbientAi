@@ -1,3 +1,4 @@
+
 // App.tsx
 import { useEffect, useRef, useState } from "react";
 import Reveal from "reveal.js";
@@ -15,20 +16,66 @@ type SlideProps = {
     slide: SlideContent;
 }
 
-const Slide = ({setSlideId, slide}: SlideProps) => {
+const Slide = ({ setSlideId, slide }: SlideProps) => {
     useEffect(() => {
         setSlideId(slide.slideId);
-        return () => {
-            setSlideId(null);
-        }
-    }, []);
+        return () => setSlideId(null);
+    }, [setSlideId, slide.slideId]);
+
+    // Function to convert text with periods into text with line breaks
+    const formatText = (text:string) => {
+        const newText = text.replace(/\. /g, '.<br /><br />');
+        return {__html: newText};  // Returning an object suitable for dangerouslySetInnerHTML
+    };
 
     return (
-        <section postId={slide.slideId} index={slide.index}>
-            slide
+        <section 
+            style={{
+                display: 'flex',
+                flexDirection: 'column',
+                minHeight: '90vh',
+                width: '100vw',
+                margin: '5vh 0',
+                overflow: 'hidden',
+                alignItems: 'flex-start',
+            }}
+            data-post-id={slide.slideId}
+            data-index={slide.index}
+        >
+            <div style={{ 
+                height: '45vh',
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'flex-start',
+                overflow: 'hidden'
+            }}>
+                <img 
+                    src={slide.image} 
+                    alt="Slide Image" 
+                    style={{
+                        height: '100%',
+                        objectFit: 'cover'
+                    }} 
+                />
+            </div>
+            <div 
+                style={{
+                    height: '45vh',
+                    width: 'calc(100% - 10px)',
+                    marginLeft: '0px',
+                    padding: '20px 20px 20px 0px',
+                    boxSizing: 'border-box',
+                    overflowY: 'auto',
+                    textAlign: 'left',
+                }}
+            >
+                <h2 style={{ margin: '0', padding: '0', fontSize: '34px' }}>{slide.slideId}</h2>
+                <p style={{ margin: '0', padding: '0', fontSize: '24px' }} dangerouslySetInnerHTML={formatText(slide.content)}></p>
+            </div>
         </section>
-    )
+    );
 }
+
 
 
 type PostProps = {
