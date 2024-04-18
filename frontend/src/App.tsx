@@ -1,173 +1,51 @@
 // App.tsx
-import { useEffect, useRef, useState } from "react";
-import Reveal from "reveal.js";
 import "reveal.js/dist/reveal.css";
 import "reveal.js/dist/theme/white.css";
-import {motion} from "framer-motion";
-import { useSocket } from "./socket";
-import { EngagementState } from "./types/engagement-state";
-import { SlideContent } from "./types/slide-content";
-import {mockSlides} from "../src/mock/slides";
+import RevealComponent from "./components/reveal-component";
 
-
-type SlideProps = {
-    setSlideId: (slideId: number | null) => void;
-    slide: SlideContent;
-}
-
-const Slide = ({setSlideId, slide}: SlideProps) => {
-    useEffect(() => {
-        setSlideId(slide.slideId);
-        return () => {
-            setSlideId(null);
-        }
-    }, []);
-
-    
-    return (
-       // @ts-ignore
-        <section postId={slide.slideId} index={slide.index}>
-            slide
-        </section>
-    )
-}
-
-
-type PostProps = {
-    postId: number;
-    setPostId: (postId: number | null) => void;
-    setSlideId: (slideId: number | null) => void;
-    slides: SlideContent[];
-}
-
-const Post = ({setPostId, postId, setSlideId, slides}: PostProps) => {
-
-    useEffect(() => {
-        setPostId(postId);
-    }, []);
-
-    return (
-        <section id={`${postId}`}>
-            {
-                slides.map((slide, index) => (
-                    <Slide key={index} setSlideId={setSlideId} slide={slide} />
-                ))
-            }
-        </section>
-    )
-}
-
+import { FullScreen, useFullScreenHandle } from "react-full-screen";
+import ReactWeather, { useOpenWeather } from 'react-open-weather';
+import EmbeddingsCarousel from "./components/embeddings-carousel";
+import FactsCarousel from "./components/facts-carousel";
 
 function App() {
-    const deckDivRef = useRef<HTMLDivElement>(null); // reference to deck container div
-    const deckRef = useRef<Reveal.Api | null>(null); // reference to deck reveal instance
-    const [engagementState, setEngagementState] = useState<EngagementState>("enter");
+    const handle = useFullScreenHandle();
+    const handleFullScreen = () => {
+        handle.enter();
+    }
 
-    const {setPostId, setSlideId } = useSocket(setEngagementState);
-    const [isReady, setIsReady] = useState(false);
-   
-
-    useEffect(() => {
-        if (!isReady) return;
-        // run at an interval of 10 seconds
-        const interval = setInterval(() => {
-            if (engagementState === "leave") {
-                return;
-            }
-
-            if (engagementState === "user_engaged") {
-                deckRef.current?.down();
-                return;
-            }
-            deckRef.current?.right();
-
-        }, 5000);
-        return () => clearInterval(interval);
-
-    }, [isReady, engagementState]);
+    const { data, isLoading, errorMessage } = useOpenWeather({
+        key: 'f7d0a17dbb4f5f8027630d62a813e9af',
+        lat: '28.061604937548182',
+        lon: '11-80.6244784705026',
+        lang: 'en',
+        unit: 'metric', // values are (metric, standard, imperial)
     
-    useEffect(() => {
-        // Prevents double initialization in strict mode
-        if (deckRef.current) return;
-
-        deckRef.current = new Reveal(deckDivRef.current!, {
-            transition: "slide",
-            // other config options
-            loop: true,
-            controls: false,
-            progress: false,
-            touch: false,
-            
-        });
-
-        deckRef.current.on("slidechanged", (event) => {
-            // @ts-ignore
-            setPostId(event.currentSlide.getAttribute("postId")!);
-            // @ts-ignore
-            setSlideId(event.currentSlide.getAttribute("index")!);
-            
-        });
+      });
 
 
-        deckRef.current.initialize().then(() => {
-            // good place for event handlers and plugin setups
-            setIsReady(true);
-            
-        });
-
-        return () => {
-            try {
-                if (deckRef.current) {
-                    deckRef.current.destroy();
-                    deckRef.current = null;
-                }
-            } catch (e) {
-                console.warn("Reveal.js destroy call failed.");
-                console.error(e);
-            }
-        };
-    }, [engagementState]);
-
- 
     return (
-       <div
-       style={{
-        position: "relative",
-       }}
-        >
-            <motion.div 
-            animate={{opacity: engagementState === "leave" ? 0.5 : 0,}}
-                style={{
-                position: "absolute", 
-                top: 0, 
-                left: 0 ,
-                width: "100vw",
-                height: "100vh",
-                backgroundColor: "black",
-                zIndex: 100,
+        <FullScreen handle={handle} className="bg-white">
+            <div className="top-bar">
+                AmbientAI
+                <button onClick={handleFullScreen}>Full screen</button>
+            </div>
+            <div className="parent-layout">
+                <div className="reveal-slides posts">
+                    <RevealComponent  width="864px" height="984px"/>
+                </div >
                 
-                }}>
+                <div className="embeddings">
+                    <EmbeddingsCarousel />
+                </div>
+                <div className="did-you-know">
+                    <FactsCarousel />
+                </div>
                 
-            </motion.div>
-        <div style={{
-         width: "100vw",
-         height: "100vh",
-        }}>
- 
-          <div className="reveal" ref={deckDivRef} >
-              <div className="slides">
-                  {
 
-                    mockSlides.map((post, index) => (
-                        <Post key={index} postId={post.slideId} setPostId={setPostId} setSlideId={setSlideId} slides={post.slides} />
-                    ))
-
-                  }
-              </div>
-          </div>
-        </div>
-       </div>
-    );
+            </div>      
+        </FullScreen>
+    )
 }
 
 export default App;
