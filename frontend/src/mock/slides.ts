@@ -94,5 +94,29 @@ export const mockSlides: SlideCollection[] = [
             
         ]
     },
+    {
+        slideId: 4,
+        slides: [
+            {
+                slideId: 4,
+                index: 0,
+                duration: 1000,
+                src: host + "lockheedT.png"
+            },
+            {
+                slideId: 4,
+                index: 1,
+                duration: 2000,
+                src: host + "airseV.PNG"
+            },
+            {
+                slideId: 4,
+                index: 2,
+                duration: 2000,
+                src: host + "vistaTT.PNG"
+            },
+            
+        ]
+    },
     
 ];
