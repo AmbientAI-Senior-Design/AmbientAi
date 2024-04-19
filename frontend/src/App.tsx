@@ -66,6 +66,7 @@ function App() {
             </div >
             <motion.div className="absolute top-0 right-0 h-screen z-100 w-screen bg-black " 
                 animate={{ opacity: opacity }}
+                style={{ pointerEvents: "none" }} // Add this line to make the div ignore clicks
             >
                 
 
