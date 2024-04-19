@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
+import { useEngagement } from './context/engagement-state';
 if (!import.meta.env.VITE_SOCKET_URL) {
     throw new Error('Socket URL is not defined');
 }
@@ -10,12 +11,12 @@ const URL = import.meta.env.VITE_SOCKET_URL;
 
 const socket = io(URL!);
 
-export const useSocket = (setEngagementState: (value: any) => void) => {
+export const useSocket = () => {
 
     const [isConnected, setIsConnected] = useState(false);
     const [slideId, setSlideId] = useState<number | null>(null);
     const [postId, setPostId] = useState<number | null>(null);
-
+    const { setEngagementState } = useEngagement();
 
     useEffect(() => {
       function onConnect() {
