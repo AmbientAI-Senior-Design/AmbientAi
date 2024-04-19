@@ -44,6 +44,7 @@ class InputManager(DatabaseManager):
         self._conn.commit()
 
     def insert_into_db(self, data,data2,data3,data4):
+
         model = EngagementReportModel
         query = "INSERT INTO EngagementReport (score) VALUES (%s)"
         params = model.score

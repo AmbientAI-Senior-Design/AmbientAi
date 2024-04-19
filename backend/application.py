@@ -95,7 +95,9 @@ def update_engagement():
     number_of_people = scorerecv.get("numberOfPeople", 0)
     duration = scorerecv.get("duration", 0)
     with InputManager() as db:
-       db.insert_into_db(score,number_of_engaged_people,number_of_people,duration)
+
+       db.insert_into_db(score)
+
     if score > 0:
         socketio.emit('update_data', ["http://127.0.0.1:8000/static/menu.PNG"])
     return {
