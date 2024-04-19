@@ -1,6 +1,6 @@
 export type SlideContent = {
     duration: number;
-    content: string;
+    src: string;
     slideId: number;
     index: number;
     image?: string;
