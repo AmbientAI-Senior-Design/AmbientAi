@@ -91,8 +91,13 @@ DATABASE = "ClientInput"
 def update_engagement():
     scorerecv = request.json
     score = scorerecv.get("score", 0)
+    number_of_engaged_people = scorerecv.get("numberOfEngagedPeople", 0)
+    number_of_people = scorerecv.get("numberOfPeople", 0)
+    duration = scorerecv.get("duration", 0)
     with InputManager() as db:
+
        db.insert_into_db(score)
+
     if score > 0:
         socketio.emit('update_data', ["http://127.0.0.1:8000/static/menu.PNG"])
     return {
@@ -125,6 +130,7 @@ def send_mreport():
 def leaderboards():
     with InputManager() as db:
         data = db.leaderboard_data()
+        
     return render_template('leaderboard.html', data = data)
 
 @application.route('/upload-slides', methods=['POST'])

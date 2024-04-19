@@ -57,6 +57,9 @@ class MotionAndFacialDetection:
         self.flag = False
         self.flag_prev = None
         self.sio = sio
+        self.detected_people = 0
+        self.numOfPeople = 0
+        self.eng_dur = 0
 
     @staticmethod
     def rectangle_to_tuple(rectangle):
@@ -102,11 +105,11 @@ class MotionAndFacialDetection:
                 x, y, w, h = boxes[i]
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
                 people_boxes.append((x, y, x + w, y + h))
-
+        self.numOfPeople = len(boxes)
         return people_boxes
     def send_engagement_score(self, sio):
         if self.engagement_counter > 0:
-            data = {"score":self.engagement_counter}
+            data = {"score":self.engagement_counter, "numberOfEngagedPeople": self.detected_people, "numberOfPeople":self.numOfPeople, "duration":self.eng_dur}
             try:
                 response = requests.post("http://localhost:8000/engagement", json=data)
                 sio.emit("engagement-change", {"data": "not_engaged"})
@@ -193,9 +196,11 @@ class MotionAndFacialDetection:
                     cv2.polylines(frame, [np.array(interest_coordinates)], isClosed=True, color=(0, 0, 255),
                                   thickness=2)
                     engaged = True
+                    self.eng_dur +=1
                     if not self.event:
                         self.event = True
                     self.engagement_counter +=1
+            #num_people = len(self.face_trackers)
             if not engaged and self.event:
                 self.flag = False
                 self.activity_check()
@@ -211,7 +216,8 @@ class MotionAndFacialDetection:
 
             # Print the number of faces currently detected
             text = f"Faces Detected in Frame: {len(self.face_trackers)}"
-            
+            self.detected_people = len(self.face_trackers)
+
             #print(engagement_counter)
             cv2.putText(frame, text, (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 2)
             cv2.imshow('Frame', frame)
