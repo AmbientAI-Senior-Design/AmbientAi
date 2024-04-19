@@ -26,7 +26,7 @@ export default function EmbeddingsCarousel() {
             api.scrollNext();
              
 
-        }, 5000);
+        }, 20000);
         return () => clearInterval(interval);
 
     }, [api]);

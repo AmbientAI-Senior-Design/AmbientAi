@@ -8,6 +8,7 @@ import ReactWeather, { useOpenWeather } from 'react-open-weather';
 import EmbeddingsCarousel from "./components/embeddings-carousel";
 import FactsCarousel from "./components/facts-carousel";
 
+
 function App() {
     const handle = useFullScreenHandle();
     const handleFullScreen = () => {
