@@ -20,8 +20,8 @@ class InputManager(DatabaseManager):
         return self.get_id()
     
     def add_fk_id(self,fk_id):
-        query = "INSERT INTO EngagementReport SET fk_post_id = %s"
-        query2 = "INSERT INTO Slide SET fk_post_id = %s"
+        query = "INSERT INTO EngagementReport (fk_post_id) VALUES (%s)"
+        query2 = "INSERT INTO Slide (fk_post_id) VALUES (%s)"
         self.cursor.execute(query, (fk_id))
         self._conn.commit()
         self.cursor.execute(query2, (fk_id))
@@ -43,12 +43,25 @@ class InputManager(DatabaseManager):
         self.cursor.execute(query,params)
         self._conn.commit()
 
-    def insert_into_db(self, data):
-        model = EngagementReportModel
-        query = "INSERT INTO EngagementReport (score) VALUES (%s)"
-        params = model.score
+    def insert_into_db(self, data, post_id):
+        #model = EngagementReportModel(**data)
+        score = data
+        print(score)
+        last_id = post_id
+        print("here")
+        print(last_id)
+        print("here2")
+        if last_id is not None:
+            query = "INSERT INTO EngagementReport (score) VALUES (%s)"
+            print("here3")
+            params = (score,)
+        else:
+            query = "INSERT INTO EngagementReport (score) VALUES (%s)"
+            print("here2")
+            params = (score,)
         self.cursor.execute(query, params)
         self._conn.commit()
+        print("final")
 
     def get_all_slides(self):
         self.cursor.execute("SELECT path, description FROM Slide")

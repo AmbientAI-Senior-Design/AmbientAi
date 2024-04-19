@@ -87,18 +87,23 @@ def success():
     return render_template('success.html')
 
 DATABASE = "ClientInput"
-@application.route("/engagement",methods =["POST"])
+@application.route("/engagement",methods = ["POST"])
 def update_engagement():
     scorerecv = request.json
     score = scorerecv.get("score", 0)
+    print(score)
+    data = score
+
     with InputManager() as db:
-       db.insert_into_db(score)
+        post_id = db.add_new_row_to_Post()
+        db.insert_into_db(data, post_id)
     if score > 0:
         socketio.emit('update_data', ["http://127.0.0.1:8000/static/menu.PNG"])
     return {
         "status": 200,
         "Message": "Score updated"
     }
+
 
 @application.route("/events/<event>", methods = ["POST"])
 def send_activity(event):

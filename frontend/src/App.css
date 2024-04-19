@@ -40,3 +40,14 @@
 .read-the-docs {
   color: #888;
 }
+
+.top-bar {
+  width: 100%;
+  color: white;
+  font-size: 1.875rem; /* 30px */
+  line-height: 2.25rem; /* 36px */
+  background-color: red;
+  position: absolute;
+  top: 0;
+  right: 0;
+}

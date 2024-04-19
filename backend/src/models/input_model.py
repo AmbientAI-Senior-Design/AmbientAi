@@ -6,14 +6,14 @@ class PostModel(BaseModel):
     id: Optional[int] = None  
 
 class EngagementReportModel(BaseModel):
-    id: Optional[int] = None  
-    date: date
-    duration: int
-    numberOfPeople: int
-    numberOfEngagedPeople: int
-    score: float
-    fk_post_id: int
-    slide_index: int
+    id: Optional[int] = None
+    date: Optional[date] = None
+    duration: Optional[int] = None
+    numberOfPeople: Optional[int] = None
+    numberOfEngagedPeople: Optional[int] = None
+    score: Optional [float]  
+    fk_post_id: Optional[int] = None
+    slide_index: Optional[int] = None
 
 class SlideModel(BaseModel):
     id: Optional[int] = None  

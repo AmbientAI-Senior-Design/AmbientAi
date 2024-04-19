@@ -55,6 +55,7 @@ export const mockSlides: SlideCollection[] = [
                 content: "The Rocket Center location in West Virginia will see an increase in employees, as well as including transfers from within the corporation.",
                 slideId: 3,
                 index: 1,
+                image: "http://127.0.0.1:8000/static/6606cb93da3cd.image.jpg",
             },
             {
                 duration: 3000,

@@ -108,7 +108,7 @@ class MotionAndFacialDetection:
         if self.engagement_counter > 0:
             data = {"score":self.engagement_counter}
             try:
-                response = requests.post("http://localhost:8000/engagement", json=data)
+                response = requests.post("http://127.0.0.1:8000/engagement", json=data)
                 sio.emit("engagement-change", {"data": "not_engaged"})
 
                 print(f"Engagement score sent: {data['score']} - Server response: {response.status_code}")
@@ -120,13 +120,15 @@ class MotionAndFacialDetection:
         if self.activity != self.prev_activity:
             if self.activity:
                 event_type = "not_engaged"
+                data = {"event":event_type}
+                response = requests.post("http://127.0.0.1:8000/events/%s" % event_type )
                 self.flag = False
             else:
                 event_type = "leave"
-            self.sio.emit("engagement-change", {"data": event_type})
+            response = requests.post("http://127.0.0.1:8000/events/%s" % event_type)
         if self.flag != self.flag_prev:
             event_type = "user_engaged"
-            self.sio.emit("engagement-change", {"data": event_type})
+            response = requests.post("http://127.0.0.1:8000/events/%s" % event_type)
 
 
             # Update the previous activity state after sending the POST request

@@ -28,17 +28,10 @@ const Slide = ({ setSlideId, slide }: SlideProps) => {
         return {__html: newText};  // Returning an object suitable for dangerouslySetInnerHTML
     };
 
+
     return (
         <section 
-            style={{
-                display: 'flex',
-                flexDirection: 'column',
-                minHeight: '90vh',
-                width: '100vw',
-                margin: '5vh 0',
-                overflow: 'hidden',
-                alignItems: 'flex-start',
-            }}
+          
             data-post-id={slide.slideId}
             data-index={slide.index}
         >
@@ -59,18 +52,12 @@ const Slide = ({ setSlideId, slide }: SlideProps) => {
                 />
             </div>
             <div 
-                style={{
-                    height: '45vh',
-                    width: 'calc(100% - 10px)',
-                    marginLeft: '0px',
-                    padding: '20px 20px 20px 0px',
-                    boxSizing: 'border-box',
-                    overflowY: 'auto',
-                    textAlign: 'left',
-                }}
+               
             >
                 <h2 style={{ margin: '0', padding: '0', fontSize: '34px' }}>{slide.slideId}</h2>
-                <p style={{ margin: '0', padding: '0', fontSize: '24px' }} dangerouslySetInnerHTML={formatText(slide.content)}></p>
+                <div style={{"width": "100px !importart"}}>
+                    <div className="text-left">{slide.content}</div>
+                </div>
             </div>
         </section>
     );
@@ -85,7 +72,7 @@ type PostProps = {
     slides: SlideContent[];
 }
 
-const Post = ({setPostId, postId, setSlideId, slides}: PostProps) => {
+export const Post = ({setPostId, postId, setSlideId, slides}: PostProps) => {
 
     useEffect(() => {
         setPostId(postId);
@@ -112,24 +99,24 @@ function App() {
     const [isReady, setIsReady] = useState(false);
    
 
-    useEffect(() => {
-        if (!isReady) return;
-        // run at an interval of 10 seconds
-        const interval = setInterval(() => {
-            if (engagementState === "leave") {
-                return;
-            }
+     useEffect(() => {
+         if (!isReady) return;
+         // run at an interval of 10 seconds
+         const interval = setInterval(() => {
+             if (engagementState === "leave") {
+                 return;
+             }
 
-            if (engagementState === "user_engaged") {
-                deckRef.current?.down();
-                return;
-            }
-            deckRef.current?.right();
+             if (engagementState === "user_engaged") {
+                 deckRef.current?.down();
+                 return;
+             }
+             deckRef.current?.right();
 
-        }, 5000);
-        return () => clearInterval(interval);
+         }, 5000);
+         return () => clearInterval(interval);
 
-    }, [isReady, engagementState]);
+     }, [isReady, engagementState]);
     
     useEffect(() => {
         // Prevents double initialization in strict mode
@@ -178,8 +165,11 @@ function App() {
        <div
        style={{
         position: "relative",
+        width: "100vw",
+        height: "100vh"
        }}
         >
+            
             <motion.div 
             animate={{opacity: engagementState === "leave" ? 0.5 : 0,}}
                 style={{
