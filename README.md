@@ -85,5 +85,6 @@ AmbienAI is designed with privacy in mind. All processing is done locally, and n
 - Contributors and testers
 
 ## Contact
-- Project Lead: Patrick Menendez Rosado
+- Project Lead: Patrick Menendez Rosado, Nicholas Chen
 - Email: patrickmenendez29@gmail.com
+- Email: nicholaschen.10@hotmail.com
